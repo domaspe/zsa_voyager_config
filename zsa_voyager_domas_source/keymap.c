@@ -6,161 +6,404 @@
 #endif
 
 enum custom_keycodes {
-  RGB_SLD = ZSA_SAFE_RANGE,
-  ST_MACRO_0,
-  ST_MACRO_1,
+    RGB_SLD = ZSA_SAFE_RANGE,
+    BACKSLASH_ENTER,
+    MAC_TOGGLE,
+    SWITCH_TAB,
+    PASTE_PLAIN,
+    WORD_LEFT,
+    WORD_RIGHT,
+    LINE_START,
+    LINE_END,
+    DELETE_WORD,
 };
 
-
-
-#define DUAL_FUNC_0 LT(1, KC_F17)
+#define APP_CMD_L  LT(0, KC_ESCAPE)
+#define APP_CMD_R  LT(0, KC_SPACE)
+#define NUM5_CLICK LT(1, KC_F17)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-  [0] = LAYOUT_voyager(
-    KC_GRAVE,       KC_1,           KC_2,           KC_3,           KC_4,           DUAL_FUNC_0,                                    KC_6,           KC_7,           KC_8,           KC_9,           KC_0,           KC_MINUS,       
-    KC_ESCAPE,      KC_Q,           KC_W,           KC_E,           KC_R,           KC_T,                                           KC_Y,           KC_U,           KC_I,           KC_O,           KC_P,           KC_EQUAL,       
-    MT(MOD_LSFT, KC_SPACE),KC_A,           KC_S,           KC_D,           KC_F,           KC_G,                                           KC_H,           KC_J,           KC_K,           KC_L,           KC_SCLN,        MT(MOD_RSFT, KC_QUOTE),
-    KC_LEFT_GUI,    MT(MOD_LCTL, KC_Z),MT(MOD_LALT, KC_X),KC_C,           KC_V,           KC_B,                                           KC_N,           KC_M,           KC_COMMA,       MT(MOD_RALT, KC_DOT),MT(MOD_RCTL, KC_SLASH),KC_DELETE,      
-                                                    LT(1, KC_ENTER),MT(MOD_LCTL, KC_TAB),                                MT(MOD_LSFT, KC_SPACE),LT(2, KC_BSPC)
-  ),
-  [1] = LAYOUT_voyager(
-    KC_TRANSPARENT, KC_F1,          KC_F2,          KC_F3,          KC_F4,          KC_F5,                                          KC_F6,          KC_F7,          KC_F8,          KC_F9,          KC_F10,         KC_F11,         
-    KC_TRANSPARENT, KC_TRANSPARENT, KC_BSLS,        KC_PIPE,        KC_LCBR,        KC_RCBR,                                        KC_MS_WH_UP,    KC_HOME,        KC_UP,          KC_END,         KC_PAGE_UP,     KC_F12,         
-    KC_BSPC,        KC_TRANSPARENT, KC_LABK,        KC_RABK,        KC_LBRC,        KC_RBRC,                                        KC_MS_WH_DOWN,  KC_LEFT,        KC_DOWN,        KC_RIGHT,       KC_PGDN,        KC_TRANSPARENT, 
-    KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, LCTL(LSFT(KC_V)),ST_MACRO_0,                                     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, 
-                                                    KC_TRANSPARENT, KC_TRANSPARENT,                                 KC_TRANSPARENT, KC_TRANSPARENT
-  ),
-  [2] = LAYOUT_voyager(
-    KC_TRANSPARENT, KC_F1,          KC_F2,          KC_F3,          KC_F4,          KC_F5,                                          KC_F6,          KC_F7,          KC_F8,          KC_F9,          KC_F10,         KC_F11,         
-    KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, RGB_VAD,        RGB_VAI,                                        KC_MS_WH_UP,    KC_HOME,        KC_UP,          KC_END,         KC_PAGE_UP,     KC_F12,         
-    KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, RGB_TOG,        RGB_MODE_FORWARD,                                KC_MS_WH_DOWN,  KC_LEFT,        KC_DOWN,        KC_RIGHT,       KC_PGDN,        KC_TRANSPARENT, 
-    KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, RGB_SLD,        TOGGLE_LAYER_COLOR,                                LCTL(LSFT(KC_V)),ST_MACRO_1,     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, 
-                                                    KC_TRANSPARENT, KC_TRANSPARENT,                                 KC_TRANSPARENT, KC_TRANSPARENT
-  ),
+    [0] = LAYOUT_voyager(
+        KC_GRAVE,      KC_1,          KC_2,          KC_3,          KC_4,          NUM5_CLICK,              KC_6,          KC_7,          KC_8,          KC_9,          KC_0,             KC_MINUS,
+        SWITCH_TAB,    KC_Q,          KC_W,          KC_E,          KC_R,          KC_T,                    KC_Y,          KC_U,          KC_I,          KC_O,          KC_P,             KC_EQUAL,
+        KC_LEFT_SHIFT, KC_A,          KC_S,          KC_D,          KC_F,          KC_G,                    KC_H,          KC_J,          KC_K,          KC_L,          KC_SCLN,          RSFT_T(KC_QUOTE),
+        KC_LEFT_CTRL,  LGUI_T(KC_Z),  LALT_T(KC_X),  KC_C,          KC_V,          KC_B,                    KC_N,          KC_M,          KC_COMMA,      RALT_T(KC_DOT), RGUI_T(KC_SLASH), RCTL_T(KC_DELETE),
+                                                                    LT(1, KC_ENTER), APP_CMD_L,             APP_CMD_R,     LT(2, KC_BSPC)
+    ),
+    [1] = LAYOUT_voyager(
+        _______,       KC_F1,         KC_F2,         KC_F3,         KC_F4,         KC_F5,                   KC_F6,         KC_F7,         KC_F8,         KC_F9,         KC_F10,           KC_F11,
+        _______,       MAC_TOGGLE,    KC_BSLS,       KC_PIPE,       KC_LCBR,       KC_RCBR,                 KC_MS_WH_UP,   KC_HOME,       KC_UP,         KC_END,        KC_PAGE_UP,       KC_F12,
+        DELETE_WORD,   _______,       KC_LABK,       KC_RABK,       KC_LBRC,       KC_RBRC,                 KC_MS_WH_DOWN, KC_LEFT,       KC_DOWN,       KC_RIGHT,      KC_PGDN,          _______,
+        _______,       _______,       _______,       _______,       PASTE_PLAIN,   BACKSLASH_ENTER,         _______,       _______,       _______,       _______,       _______,          _______,
+                                                                    _______,       _______,                 _______,       _______
+    ),
+    [2] = LAYOUT_voyager(
+        _______,       KC_F1,         KC_F2,         KC_F3,         KC_F4,         KC_F5,                   KC_F6,         KC_F7,         KC_F8,         KC_F9,         KC_F10,           KC_F11,
+        _______,       _______,       _______,       _______,       RGB_VAD,       RGB_VAI,                 KC_MS_WH_UP,   LINE_START,    KC_UP,         LINE_END,      KC_PAGE_UP,       KC_F12,
+        _______,       _______,       _______,       _______,       RGB_TOG,       RGB_MODE_FORWARD,        KC_MS_WH_DOWN, WORD_LEFT,     KC_DOWN,       WORD_RIGHT,    KC_PGDN,          _______,
+        _______,       _______,       _______,       _______,       RGB_SLD,       TOGGLE_LAYER_COLOR,      PASTE_PLAIN,   BACKSLASH_ENTER, LCTL(LSFT(KC_TAB)), LCTL(KC_TAB), _______,     _______,
+                                                                    _______,       _______,                 _______,       _______
+    ),
 };
 
+const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT_voyager(
+    'L', 'L', 'L', 'L', 'L', '*',      'R', 'R', 'R', 'R', 'R', 'R',
+    'L', 'L', 'L', 'L', 'L', 'L',      'R', 'R', 'R', 'R', 'R', 'R',
+    'L', 'L', 'L', 'L', 'L', 'L',      'R', 'R', 'R', 'R', 'R', 'R',
+    'L', '*', '*', 'L', 'L', 'L',      'R', 'R', 'R', '*', '*', '*',
+                        '*', '*',      '*', '*'
+);
 
+static bool     mac_mode;
+static uint16_t left_app_command_held;
+static uint16_t right_app_command_held;
+static bool     app_switch_alt_held;
 
+static void release_app_command(uint16_t *held) {
+    if (*held) {
+        unregister_code(*held);
+        *held = 0;
+    }
+}
 
+static void end_app_switch(void) {
+    if (app_switch_alt_held) {
+        unregister_code(KC_LEFT_ALT);
+        app_switch_alt_held = false;
+    }
+}
+
+static void set_mac_mode(bool on) {
+    if (mac_mode == on) {
+        return;
+    }
+    end_app_switch();
+    release_app_command(&left_app_command_held);
+    release_app_command(&right_app_command_held);
+    mac_mode = on;
+}
+
+bool process_detected_host_os_user(os_variant_t os) {
+    switch (os) {
+        case OS_MACOS:
+        case OS_IOS:
+            set_mac_mode(true);
+            break;
+        case OS_WINDOWS:
+        case OS_LINUX:
+            set_mac_mode(false);
+            break;
+        default:
+            break;
+    }
+    return true;
+}
+
+typedef struct {
+    uint16_t keycode;
+    uint16_t tapping_term;
+    bool     hold_on_other_key_press;
+    bool     retro_tapping;
+} tap_hold_t;
+
+static const tap_hold_t tap_holds[] = {
+    { LGUI_T(KC_Z),      200, false, false },
+    { RGUI_T(KC_SLASH),  200, false, false },
+    { LALT_T(KC_X),      200, false, false },
+    { RALT_T(KC_DOT),    200, false, false },
+    { RCTL_T(KC_DELETE), 200, false, true  },
+    { NUM5_CLICK,        200, false, false },
+    { RSFT_T(KC_QUOTE),  150, true,  true  },
+};
+
+static const tap_hold_t tap_hold_default = { 0, TAPPING_TERM, false, true };
+
+static const tap_hold_t *tap_hold_for(uint16_t keycode) {
+    for (uint8_t i = 0; i < ARRAY_SIZE(tap_holds); i++) {
+        if (tap_holds[i].keycode == keycode) {
+            return &tap_holds[i];
+        }
+    }
+    return &tap_hold_default;
+}
+
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+    return tap_hold_for(keycode)->tapping_term;
+}
+
+bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+    return tap_hold_for(keycode)->hold_on_other_key_press;
+}
+
+bool get_retro_tapping(uint16_t keycode, keyrecord_t *record) {
+    return tap_hold_for(keycode)->retro_tapping;
+}
+
+bool is_flow_tap_key(uint16_t keycode) {
+    if ((get_mods() & (MOD_MASK_CG | MOD_BIT_LALT)) != 0) {
+        return false;
+    }
+    if (keycode == NUM5_CLICK) {
+        return true;
+    }
+    switch (get_tap_keycode(keycode)) {
+        case KC_SPACE:
+        case KC_A ... KC_Z:
+        case KC_1 ... KC_0:
+        case KC_DOT:
+        case KC_COMMA:
+        case KC_SCLN:
+        case KC_SLASH:
+            return true;
+    }
+    return false;
+}
+
+typedef struct {
+    uint16_t keycode;
+    uint16_t windows;
+    uint16_t mac;
+} os_keycode_t;
+
+static const os_keycode_t os_keycodes[] = {
+    { WORD_LEFT,   LCTL(KC_LEFT),    LALT(KC_LEFT)    },
+    { WORD_RIGHT,  LCTL(KC_RIGHT),   LALT(KC_RIGHT)   },
+    { LINE_START,  KC_HOME,          LGUI(KC_LEFT)    },
+    { LINE_END,    KC_END,           LGUI(KC_RIGHT)   },
+    { DELETE_WORD, LCTL(KC_BSPC),    LALT(KC_BSPC)    },
+    { PASTE_PLAIN, LCTL(LSFT(KC_V)), LGUI(LSFT(KC_V)) },
+};
+
+static uint16_t os_keycode_sent[ARRAY_SIZE(os_keycodes)];
+
+static int8_t os_keycode_index(uint16_t keycode) {
+    for (uint8_t i = 0; i < ARRAY_SIZE(os_keycodes); i++) {
+        if (os_keycodes[i].keycode == keycode) {
+            return (int8_t)i;
+        }
+    }
+    return -1;
+}
+
+static bool process_os_keycode(int8_t index, keyrecord_t *record) {
+    if (record->event.pressed) {
+        os_keycode_sent[index] = mac_mode ? os_keycodes[index].mac : os_keycodes[index].windows;
+        register_code16(os_keycode_sent[index]);
+    } else if (os_keycode_sent[index]) {
+        unregister_code16(os_keycode_sent[index]);
+        os_keycode_sent[index] = 0;
+    }
+    return false;
+}
+
+static bool process_app_command(uint16_t *held, uint16_t tap_keycode, uint16_t windows_mod, uint16_t mac_mod, keyrecord_t *record) {
+    if (record->tap.count) {
+        if (record->event.pressed) {
+            register_code16(tap_keycode);
+        } else {
+            unregister_code16(tap_keycode);
+        }
+        return false;
+    }
+    if (record->event.pressed) {
+        *held = mac_mode ? mac_mod : windows_mod;
+        register_code(*held);
+    } else {
+        release_app_command(held);
+    }
+    return false;
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    int8_t os_index = os_keycode_index(keycode);
+    if (os_index >= 0) {
+        return process_os_keycode(os_index, record);
+    }
+
+    switch (keycode) {
+        case QK_MODS ... QK_MODS_MAX:
+            // Mouse and consumer keys (volume, media) with modifiers work inconsistently across operating systems,
+            // this makes sure that modifiers are always applied to the key that was pressed.
+            if (IS_MOUSE_KEYCODE(QK_MODS_GET_BASIC_KEYCODE(keycode))) {
+                if (record->event.pressed) {
+                    add_mods(QK_MODS_GET_MODS(keycode));
+                    send_keyboard_report();
+                    wait_ms(2);
+                    register_code(QK_MODS_GET_BASIC_KEYCODE(keycode));
+                    return false;
+                } else {
+                    wait_ms(2);
+                    del_mods(QK_MODS_GET_MODS(keycode));
+                }
+            }
+            break;
+
+        case APP_CMD_L:
+            if (!record->event.pressed) {
+                end_app_switch();
+            }
+            return process_app_command(&left_app_command_held, KC_ESCAPE, KC_LEFT_CTRL, KC_LEFT_GUI, record);
+
+        case APP_CMD_R:
+            return process_app_command(&right_app_command_held, KC_SPACE, KC_RIGHT_CTRL, KC_RIGHT_GUI, record);
+
+        case SWITCH_TAB:
+            if (record->event.pressed) {
+                // Windows switches apps on Alt+Tab, so the thumb's Ctrl is traded for Alt and kept
+                // down until the thumb lifts. That is what lets repeated taps cycle the window list.
+                if (!mac_mode && left_app_command_held && !app_switch_alt_held) {
+                    release_app_command(&left_app_command_held);
+                    register_code(KC_LEFT_ALT);
+                    app_switch_alt_held = true;
+                }
+                register_code(KC_TAB);
+            } else {
+                unregister_code(KC_TAB);
+            }
+            return false;
+
+        case MAC_TOGGLE:
+            if (record->event.pressed) {
+                set_mac_mode(!mac_mode);
+            }
+            return false;
+
+        case BACKSLASH_ENTER:
+            if (record->event.pressed) {
+                SEND_STRING(SS_TAP(X_BSLS) SS_DELAY(50) SS_TAP(X_ENTER));
+            }
+            return false;
+
+        case NUM5_CLICK:
+            if (record->tap.count > 0) {
+                if (record->event.pressed) {
+                    register_code16(KC_5);
+                } else {
+                    unregister_code16(KC_5);
+                }
+            } else {
+                if (record->event.pressed) {
+                    register_code16(KC_MS_BTN1);
+                } else {
+                    unregister_code16(KC_MS_BTN1);
+                }
+            }
+            return false;
+
+        case RGB_SLD:
+            if (record->event.pressed) {
+                rgblight_mode(1);
+            }
+            return false;
+    }
+    return true;
+}
 
 extern rgb_config_t rgb_matrix_config;
 
 RGB hsv_to_rgb_with_value(HSV hsv) {
-  RGB rgb = hsv_to_rgb( hsv );
-  float f = (float)rgb_matrix_config.hsv.v / UINT8_MAX;
-  return (RGB){ f * rgb.r, f * rgb.g, f * rgb.b };
+    RGB   rgb = hsv_to_rgb(hsv);
+    float f   = (float)rgb_matrix_config.hsv.v / UINT8_MAX;
+    return (RGB){ f * rgb.r, f * rgb.g, f * rgb.b };
 }
 
 void keyboard_post_init_user(void) {
-  rgb_matrix_enable();
+    rgb_matrix_enable();
 }
 
-const uint8_t PROGMEM ledmap[][RGB_MATRIX_LED_COUNT][3] = {
-    [0] = { {214,247,231}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {28,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {143,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {250,255,255}, {74,255,255}, {28,255,255}, {143,255,255}, {96,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {143,255,255}, {143,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {214,247,231}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {74,255,255}, {214,247,231}, {74,255,255}, {250,255,255}, {74,255,255}, {74,255,255}, {214,247,231}, {143,255,255}, {74,255,255}, {74,255,255}, {214,247,231}, {96,255,255}, {143,255,255}, {0,0,0}, {143,255,255}, {143,255,255} },
-
-    [1] = { {0,0,0}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {0,0,0}, {0,0,0}, {250,255,255}, {250,255,255}, {74,255,255}, {74,255,255}, {143,255,255}, {0,0,0}, {74,255,255}, {74,255,255}, {250,255,255}, {250,255,255}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {126,255,255}, {126,255,255}, {39,244,245}, {0,0,0}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {126,255,255}, {96,255,255}, {229,255,255}, {96,255,255}, {74,255,255}, {28,255,255}, {126,255,255}, {229,255,255}, {229,255,255}, {229,255,255}, {74,255,255}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0} },
-
-    [2] = { {0,0,0}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {74,255,255}, {74,255,255}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {74,255,255}, {74,255,255}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {74,255,255}, {74,255,255}, {0,0,0}, {0,0,0}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {28,255,255}, {126,255,255}, {96,255,255}, {229,255,255}, {96,255,255}, {74,255,255}, {28,255,255}, {126,255,255}, {229,255,255}, {229,255,255}, {229,255,255}, {74,255,255}, {0,0,0}, {28,255,255}, {28,255,255}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {0,0,0}, {143,255,255} },
-
+enum glow {
+    GLOW_OFF,
+    GLOW_BLUE,
+    GLOW_CYAN,
+    GLOW_GREEN,
+    GLOW_ORANGE,
+    GLOW_PURPLE,
+    GLOW_RED,
+    GLOW_WHITE,
 };
 
-void set_layer_color(int layer) {
-  for (int i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
-    HSV hsv = {
-      .h = pgm_read_byte(&ledmap[layer][i][0]),
-      .s = pgm_read_byte(&ledmap[layer][i][1]),
-      .v = pgm_read_byte(&ledmap[layer][i][2]),
-    };
-    if (!hsv.h && !hsv.s && !hsv.v) {
-        rgb_matrix_set_color( i, 0, 0, 0 );
-    } else {
-        RGB rgb = hsv_to_rgb_with_value(hsv);
-        rgb_matrix_set_color(i, rgb.r, rgb.g, rgb.b);
+static const HSV glow_palette[] = {
+    [GLOW_OFF]    = {   0,   0,   0 },
+    [GLOW_BLUE]   = { 170, 255, 255 },
+    [GLOW_CYAN]   = { 126, 255, 255 },
+    [GLOW_GREEN]  = {  74, 255, 255 },
+    [GLOW_ORANGE] = {  21, 255, 255 },
+    [GLOW_PURPLE] = { 200, 255, 255 },
+    [GLOW_RED]    = { 250, 255, 255 },
+    [GLOW_WHITE]  = {   0,   0, 255 },
+};
+
+// Named by colour, not by key group: one colour serves different groups on
+// different layers. What each colour means where is the Colours section of
+// LAYOUT.md; the rule for picking them is the Lighting section of FIRMWARE.md.
+// GLOW_OFF must stay 0, because LAYOUT_voyager fills the unused matrix cells
+// with KC_NO.
+const uint8_t PROGMEM glowmap[][MATRIX_ROWS][MATRIX_COLS] = {
+    [0] = LAYOUT_voyager(
+        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_ORANGE,      GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,
+        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,
+        GLOW_PURPLE,  GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_PURPLE,
+        GLOW_PURPLE,  GLOW_RED,     GLOW_PURPLE,  GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_PURPLE,  GLOW_RED,     GLOW_PURPLE,
+                                                                GLOW_GREEN,   GLOW_RED,         GLOW_RED,     GLOW_GREEN
+    ),
+    [1] = LAYOUT_voyager(
+        GLOW_OFF,     GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,       GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,
+        GLOW_OFF,     GLOW_WHITE,   GLOW_PURPLE,  GLOW_PURPLE,  GLOW_RED,     GLOW_RED,         GLOW_ORANGE,  GLOW_PURPLE,  GLOW_CYAN,    GLOW_PURPLE,  GLOW_RED,     GLOW_GREEN,
+        GLOW_PURPLE,  GLOW_OFF,     GLOW_CYAN,    GLOW_CYAN,    GLOW_GREEN,   GLOW_GREEN,       GLOW_ORANGE,  GLOW_CYAN,    GLOW_CYAN,    GLOW_CYAN,    GLOW_RED,     GLOW_OFF,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_PURPLE,  GLOW_PURPLE,      GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,
+                                                                GLOW_GREEN,   GLOW_OFF,         GLOW_OFF,     GLOW_OFF
+    ),
+    [2] = LAYOUT_voyager(
+        GLOW_OFF,     GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,       GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_RED,     GLOW_RED,         GLOW_ORANGE,  GLOW_PURPLE,  GLOW_CYAN,    GLOW_PURPLE,  GLOW_RED,     GLOW_GREEN,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_CYAN,    GLOW_CYAN,        GLOW_ORANGE,  GLOW_GREEN,   GLOW_CYAN,    GLOW_GREEN,   GLOW_RED,     GLOW_OFF,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_CYAN,    GLOW_WHITE,       GLOW_PURPLE,  GLOW_PURPLE,  GLOW_ORANGE,  GLOW_ORANGE,  GLOW_OFF,     GLOW_OFF,
+                                                                GLOW_OFF,     GLOW_OFF,         GLOW_OFF,     GLOW_GREEN
+    ),
+};
+
+static const keypos_t mac_mode_indicator_key = { .row = 3, .col = 1 };
+
+static void set_led_glow(uint8_t led, enum glow glow) {
+    RGB rgb = hsv_to_rgb_with_value(glow_palette[glow]);
+    rgb_matrix_set_color(led, rgb.r, rgb.g, rgb.b);
+}
+
+static void set_layer_color(uint8_t layer) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+        for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+            uint8_t led = g_led_config.matrix_co[row][col];
+            if (led == NO_LED) {
+                continue;
+            }
+            set_led_glow(led, pgm_read_byte(&glowmap[layer][row][col]));
+        }
     }
-  }
+}
+
+static void set_mac_mode_indicator(void) {
+    uint8_t led = g_led_config.matrix_co[mac_mode_indicator_key.row][mac_mode_indicator_key.col];
+    if (led == NO_LED) {
+        return;
+    }
+    set_led_glow(led, GLOW_WHITE);
 }
 
 bool rgb_matrix_indicators_user(void) {
-  if (rawhid_state.rgb_control) {
-      return false;
-  }
-  if (!keyboard_config.disable_layer_led) { 
-    switch (biton32(layer_state)) {
-      case 0:
-        set_layer_color(0);
-        break;
-      case 1:
-        set_layer_color(1);
-        break;
-      case 2:
-        set_layer_color(2);
-        break;
-     default:
-        if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
-          rgb_matrix_set_color_all(0, 0, 0);
-        }
-    }
-  } else {
-    if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
-      rgb_matrix_set_color_all(0, 0, 0);
-    }
-  }
-
-  return true;
-}
-
-
-
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  switch (keycode) {
-  case QK_MODS ... QK_MODS_MAX:
-    // Mouse and consumer keys (volume, media) with modifiers work inconsistently across operating systems,
-    // this makes sure that modifiers are always applied to the key that was pressed.
-    if (IS_MOUSE_KEYCODE(QK_MODS_GET_BASIC_KEYCODE(keycode))) {
-      if (record->event.pressed) {
-        add_mods(QK_MODS_GET_MODS(keycode));
-        send_keyboard_report();
-        wait_ms(2);
-        register_code(QK_MODS_GET_BASIC_KEYCODE(keycode));
+    if (rawhid_state.rgb_control) {
         return false;
-      } else {
-        wait_ms(2);
-        del_mods(QK_MODS_GET_MODS(keycode));
-      }
     }
-    break;
-    case ST_MACRO_0:
-    if (record->event.pressed) {
-      SEND_STRING(SS_TAP(X_BSLS)SS_DELAY(50)  SS_TAP(X_ENTER));
-    }
-    break;
-    case ST_MACRO_1:
-    if (record->event.pressed) {
-      SEND_STRING(SS_TAP(X_BSLS)SS_DELAY(50)  SS_TAP(X_ENTER));
-    }
-    break;
 
-    case DUAL_FUNC_0:
-      if (record->tap.count > 0) {
-        if (record->event.pressed) {
-          register_code16(KC_5);
-        } else {
-          unregister_code16(KC_5);
-        }
-      } else {
-        if (record->event.pressed) {
-          register_code16(KC_MS_BTN1);
-        } else {
-          unregister_code16(KC_MS_BTN1);
-        }  
-      }  
-      return false;
-    case RGB_SLD:
-      if (record->event.pressed) {
-        rgblight_mode(1);
-      }
-      return false;
-  }
-  return true;
+    uint8_t layer = get_highest_layer(layer_state);
+    if (!keyboard_config.disable_layer_led && layer < ARRAY_SIZE(glowmap)) {
+        set_layer_color(layer);
+    } else if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
+        rgb_matrix_set_color_all(0, 0, 0);
+    }
+
+    if (mac_mode) {
+        set_mac_mode_indicator();
+    }
+
+    return true;
 }
