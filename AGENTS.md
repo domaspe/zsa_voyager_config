@@ -24,7 +24,7 @@ zsa_voyager_xB6Jx.bin   an older build, kept as something to go back to
 
 **`keymap.c`, `LAYOUT.md` and `FIRMWARE.md` change together.** A key that moves in one moves in all three. A reader who trusts a stale `LAYOUT.md` will mistype for a week before working out why. Colour is part of this: a key that changes what it does also changes its colour in `glowmap`, in the colour grids of `LAYOUT.md` **Colours** and in that section's meaning table, checked against its neighbours by the rules in `FIRMWARE.md` **Lighting**.
 
-**`keymap.json` is not the layout and must stay.** It holds nothing but ZSA's module list (`zsa/oryx`, `zsa/navigator_trackpad`, `zsa/defaults`). Those modules supply `ZSA_SAFE_RANGE`, `rawhid_state` and `TOGGLE_LAYER_COLOR`, which `keymap.c` uses, so deleting the file breaks the build. QMK reads it and then pulls in `keymap.c` as well; both are used together (`builddefs/build_keyboard.mk`, the `keymap.json` block).
+**`keymap.json` is not the layout and must stay.** It holds nothing but ZSA's module list (`zsa/oryx`, `zsa/navigator_trackpad`, `zsa/defaults`). Those modules supply `ZSA_SAFE_RANGE` and `rawhid_state`, which `keymap.c` uses, so deleting the file breaks the build. QMK reads it and then pulls in `keymap.c` as well; both are used together (`builddefs/build_keyboard.mk`, the `keymap.json` block).
 
 **Colours come only from `glow_palette`.** No one-off HSV value anywhere else. A new colour is added to `enum glow`, `glow_palette`, `LAYOUT.md` and `FIRMWARE.md` in the same change, and has to sit at least 42° from every existing hue so it can touch any of them.
 

@@ -56,6 +56,7 @@ The rest:
 | `MAC_TOGGLE`          | layer 1 `R4-6`         | Flips Mac mode. Pink in Windows mode, white in Mac mode, like the four keys it flips. |
 | `BACKSLASH_ENTER`     | layer 1 `L4-6`         | Sends `\` then Enter.                                       |
 | `NUM5_CLICK`          | `L1-6`                 | Tap `5`. Hold left mouse button.                            |
+| `LINGER_TOGGLE`       | layer 2 `L3-6`         | Turns the linger effect off and on. Not saved; on at power-up. See **Lighting**. |
 
 `APP_CMD_L` and `APP_CMD_R` are written as `LT(0, ...)`. Layer 0 is the base layer, so the hold does nothing by itself and `process_record_user` supplies the modifier, reading `record->tap.count` to tell a tap from a hold. Which modifier it registered is stored, and release lets go of that stored one rather than recomputing it, so a mode change between press and release cannot strand a key down.
 
@@ -155,9 +156,19 @@ The Oryx export kept colours as a flat list in LED order, which is not key order
 
 Eight hues, each at least 42° from every other on the hue wheel, so any two can sit side by side without a further rule. In QMK's 0–255 hue scale: red 254, orange 28, lime 60, green 92, cyan 128, blue 164, purple 194, pink 224. The smallest gap is 30 units, which is 42°. Saturation and value are always 255. `hsv_to_rgb_with_value` scales every key by the global brightness, which `L2-5` and `L2-6` on layer 2 set and the board remembers, so a per-key shade would fight the brightness setting and fade first when it is low.
 
-White means Mac mode on the five mode keys, and on layer 2 marks the six lighting keys `L2-5`, `L2-6`, `L3-5`, `L3-6`, `L4-5`, `L4-6`, which change the board itself. No other key is white, so a white key on base always means Mac mode is on.
+White means Mac mode on the five mode keys, and on layer 2 marks the four lighting keys `L2-5`, `L2-6`, `L3-5`, `L3-6`, which change the board itself. No other key is white, so a white key on base always means Mac mode is on.
 
-`TOGGLE_LAYER_COLOR` on layer 2 `L4-6` flips `keyboard_config.disable_layer_led`. With it on, `rgb_matrix_indicators_user` skips the grid and the plain RGB effect shows; the mode keys are still painted white in Mac mode.
+### Linger
+
+A pressed key dims to half its brightness and comes back to full over 400 ms. `linger` does it: for the LED being painted it looks up the newest press in `g_last_hit_tracker`, QMK's list of recent presses with their age in ms, and scales the value by how much of `linger_ms` has passed. `set_led_glow` runs every colour through it, so it applies to the grid and to the Mac-mode white keys alike.
+
+The dip is a fraction of the key's own value, not a fixed amount, so it survives `hsv_to_rgb_with_value` scaling every key by the global brightness set with `L2-5` and `L2-6`: at any brightness a fresh press is half as bright as its neighbours and the return looks the same. Dark keys (value 0) come out of the same formula unchanged, so they need no special case. An earlier version lowered saturation towards white instead; that was dropped because the layers already have dark keys, and a pale key read as a third state.
+
+`rgb_matrix_indicators_user` runs once per frame, every 26 ms (`led_flush_limit` in the board's `keyboard.json`), so the 400 ms return has about fifteen steps.
+
+`LINGER_TOGGLE` on layer 2 `L3-6` flips `linger_on`. It is a plain variable, not saved to the board's settings memory, so the effect is on after every plug-in. That was a choice, made to keep the code small.
+
+None of QMK's own animations is compiled in. The board's `keyboard.json` enables them all and `config.h` removes every one with `#undef`. QMK's press tracker is compiled only while a reactive effect is enabled, so `config.h` asks for it directly with `RGB_MATRIX_KEYPRESSES`. The effect index the board remembers from an older build may now point at nothing; that draws nothing and the grid paints every LED on top, so it is invisible.
 
 ## Known limits
 
@@ -320,6 +331,14 @@ A compile proves the code builds. Only typing proves it works.
 
 22. Base layer: blue everywhere except orange on `L3-1`, `R3-6`, `L4-1`, `R4-6`, `L4-3`, `R4-4`; pink on `L4-2`, `R4-5`, `LT2`, `RT1`; green on `LT1`, `RT2`; red on `L1-6`.
 23. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: lime top row, four symbol pairs in four colours, nothing blue, nothing lit on the right hand except F6–F12 and `R4-6`, everything marked `_` dark. `LT1` + `R2-1` types `y` and does not scroll.
-24. Hold `RT2`. Same for the layer 2 grid: six white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance.
+24. Hold `RT2`. Same for the layer 2 grid: four white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance.
 25. In Mac mode `LT2`, `RT1`, `L4-2` and `R4-5` are white on the base layer, `R4-6` is white on layer 1, and nothing else changes.
 26. Judge orange against lime, and lime against green, by eye. If two read alike, move a hue in `glow_palette` and keep every gap at 30 units or more.
+
+**Linger**
+
+27. Type a few words on base. Each pressed key dims to about half and is back to full within half a second.
+28. Hold `RT2` and tap `L3-6`. Type again: no dip. `RT2` + `L3-6` once more brings it back.
+29. Unplug and plug in again. The dip is back without touching anything.
+30. In Mac mode, `LT2`, `RT1`, `L4-2` and `R4-5` are white and dim like any other key.
+31. `RT2` + `L3-5` still blacks the board out, and again brings it back.

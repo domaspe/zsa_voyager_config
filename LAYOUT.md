@@ -120,9 +120,9 @@ end one row up, the two deletes under the pinky.
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
 │     _     │     _     │     _     │     _     │ Bright -  │ Bright +  │     │ Wheel up  │Line start │    Up     │ Line end  │   PgUp    │    F12    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     _     │     _     │RGB on/off │ RGB next  │     │Wheel down │   Left    │   Down    │   Right   │   PgDn    │     _     │
+│     _     │     _     │     _     │     _     │RGB on/off │  Linger   │     │Wheel down │   Left    │   Down    │   Right   │   PgDn    │     _     │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     _     │     _     │ RGB solid │Layer LEDs │     │     _     │ Word left │     _     │Word right │ Del line  │ Del word  │
+│     _     │     _     │     _     │     _     │     _     │     _     │     │     _     │ Word left │     _     │Word right │ Del line  │ Del word  │
 └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
                                                  ┌───────────┬───────────┐     ┌───────────┬───────────┐
                                                  │     _     │     _     │     │     _     │     _     │
@@ -144,6 +144,11 @@ thumbs, red is the mouse wherever the layer has a mouse key. Every other colour 
 layer, and two groups that touch never share a colour. The grid for the layer
 you are on is the reference.
 
+A pressed key lingers: it dims to half and comes back to full over 0.4 s, so
+the last few keys you typed trail behind you as a dim wake. Linger (layer 2
+`L3-6`) turns this off and on. The board does not remember the choice; after
+every plug-in the effect is on. Keys that are dark on a layer stay dark.
+
 | Colour | Looks like | Base                                                                                                           | Layer 1                                                                                                                                                                                              | Layer 2                                                                                                                                |
 | ------ | ---------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | blue   | `#0021FF`  | every key that only types: letters, digits, `` ` ``, Tab, `-`, `=`, `;`, `,`                                   | —                                                                                                                                                                                                    | —                                                                                                                                      |
@@ -154,13 +159,13 @@ you are on is the reference.
 | lime   | `#96FF00`  | —                                                                                                              | F1–F12                                                                                                                                                                                               | F1–F12                                                                                                                                 |
 | cyan   | `#00FCFF`  | —                                                                                                              | `<` `>` (`L3-3`, `L3-4`)                                                                                                                                                                             | lines: Line start, Line end, Del line (`R2-2`, `R2-4`, `R4-5`)                                                                         |
 | purple | `#9100FF`  | —                                                                                                              | `{` `}` (`L2-5`, `L2-6`)                                                                                                                                                                             | characters: the arrows (`R2-3`, `R3-2`, `R3-3`, `R3-4`)                                                                                |
-| white  | `#FFFFFF`  | the same four keys while Mac mode is on                                                                        | Mac mode (`R4-6`) while Mac mode is on                                                                                                                                                               | the six lighting keys Bright −, Bright +, RGB on/off, RGB next, RGB solid, Layer LEDs (`L2-5`, `L2-6`, `L3-5`, `L3-6`, `L4-5`, `L4-6`) |
+| white  | `#FFFFFF`  | the same four keys while Mac mode is on                                                                        | Mac mode (`R4-6`) while Mac mode is on                                                                                                                                                               | the four lighting keys Bright −, Bright +, RGB on/off, Linger (`L2-5`, `L2-6`, `L3-5`, `L3-6`)                                         |
 
 The keys that depend on the mode show the mode. Esc, Space, Z and `/` hold Ctrl
 or Win on Windows and Cmd on a Mac, so they are pink on Windows and white on a
 Mac, and you can read the mode off the base layer at any time. The Mac mode key
 on layer 1 wears the same pair, pink then white, because it is what flips them.
-The six white keys on layer 2 are the switches that change how the board itself
+The four white keys on layer 2 are the switches that change how the board itself
 lights up. No other key is ever white.
 
 On layer 2 the colour is the unit a key works on: purple moves by a character,
@@ -215,7 +220,7 @@ The four pink keys turn white while Mac mode is on.
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
 │           │           │           │           │   white   │   white   │     │    red    │  purple   │  purple   │  purple   │   pink    │           │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │           │           │   white   │   white   │     │           │  orange   │           │  orange   │   cyan    │  orange   │
+│           │           │           │           │           │           │     │           │  orange   │           │  orange   │   cyan    │  orange   │
 └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
                                                  ┌───────────┬───────────┐     ┌───────────┬───────────┐
                                                  │           │           │     │           │   green   │

@@ -6,7 +6,7 @@
 #endif
 
 enum custom_keycodes {
-    RGB_SLD = ZSA_SAFE_RANGE,
+    LINGER_TOGGLE = ZSA_SAFE_RANGE,
     BACKSLASH_ENTER,
     MAC_TOGGLE,
     SWITCH_TAB,
@@ -43,8 +43,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [2] = LAYOUT_voyager(
         _______,       KC_F1,         KC_F2,         KC_F3,         KC_F4,         KC_F5,                   KC_F6,         KC_F7,         KC_F8,         KC_F9,         KC_F10,           KC_F11,
         _______,       _______,       _______,       _______,       RGB_VAD,       RGB_VAI,                 KC_MS_WH_UP,   LINE_START,    KC_UP,         LINE_END,      KC_PAGE_UP,       KC_F12,
-        _______,       _______,       _______,       _______,       RGB_TOG,       RGB_MODE_FORWARD,        KC_MS_WH_DOWN, KC_LEFT,       KC_DOWN,       KC_RIGHT,      KC_PGDN,          _______,
-        _______,       _______,       _______,       _______,       RGB_SLD,       TOGGLE_LAYER_COLOR,      _______,       WORD_LEFT,     _______,       WORD_RIGHT,    DELETE_LINE,      DELETE_WORD,
+        _______,       _______,       _______,       _______,       RGB_TOG,       LINGER_TOGGLE,           KC_MS_WH_DOWN, KC_LEFT,       KC_DOWN,       KC_RIGHT,      KC_PGDN,          _______,
+        _______,       _______,       _______,       _______,       _______,       _______,                 _______,       WORD_LEFT,     _______,       WORD_RIGHT,    DELETE_LINE,      DELETE_WORD,
                                                                     _______,       _______,                 _______,       _______
     ),
 };
@@ -58,6 +58,7 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT_voyage
 );
 
 static bool     mac_mode;
+static bool     linger_on = true;
 static uint16_t left_app_command_held;
 static uint16_t right_app_command_held;
 static bool     app_switch_alt_held;
@@ -306,9 +307,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
-        case RGB_SLD:
+        case LINGER_TOGGLE:
             if (record->event.pressed) {
-                rgblight_mode(1);
+                linger_on = !linger_on;
             }
             return false;
     }
@@ -379,13 +380,32 @@ const uint8_t PROGMEM glowmap[][MATRIX_ROWS][MATRIX_COLS] = {
         GLOW_OFF,     GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,        GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,
         GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_WHITE,   GLOW_WHITE,       GLOW_RED,     GLOW_CYAN,    GLOW_PURPLE,  GLOW_CYAN,    GLOW_PINK,    GLOW_LIME,
         GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_WHITE,   GLOW_WHITE,       GLOW_RED,     GLOW_PURPLE,  GLOW_PURPLE,  GLOW_PURPLE,  GLOW_PINK,    GLOW_OFF,
-        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_WHITE,   GLOW_WHITE,       GLOW_OFF,     GLOW_ORANGE,  GLOW_OFF,     GLOW_ORANGE,  GLOW_CYAN,    GLOW_ORANGE,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,         GLOW_OFF,     GLOW_ORANGE,  GLOW_OFF,     GLOW_ORANGE,  GLOW_CYAN,    GLOW_ORANGE,
                                                                 GLOW_OFF,     GLOW_OFF,         GLOW_OFF,     GLOW_GREEN
     ),
 };
 
+// Linger: a pressed key dims to half and comes back to full over linger_ms.
+// The dip is a fraction of the key's own value, so it scales with the global
+// brightness instead of fighting it. Dark keys stay dark with no special case.
+static const uint16_t linger_ms = 400;
+
+static HSV linger(uint8_t led, HSV hsv) {
+    if (!linger_on) {
+        return hsv;
+    }
+    uint16_t age = linger_ms;
+    for (uint8_t i = 0; i < g_last_hit_tracker.count; i++) {
+        if (g_last_hit_tracker.index[i] == led && g_last_hit_tracker.tick[i] < age) {
+            age = g_last_hit_tracker.tick[i];
+        }
+    }
+    hsv.v -= (hsv.v / 2) * (linger_ms - age) / linger_ms;
+    return hsv;
+}
+
 static void set_led_glow(uint8_t led, enum glow glow) {
-    RGB rgb = hsv_to_rgb_with_value(glow_palette[glow]);
+    RGB rgb = hsv_to_rgb_with_value(linger(led, glow_palette[glow]));
     rgb_matrix_set_color(led, rgb.r, rgb.g, rgb.b);
 }
 
@@ -437,7 +457,7 @@ bool rgb_matrix_indicators_user(void) {
     }
 
     uint8_t layer = get_highest_layer(layer_state);
-    if (!keyboard_config.disable_layer_led && layer < ARRAY_SIZE(glowmap)) {
+    if (layer < ARRAY_SIZE(glowmap)) {
         set_layer_color(layer);
     } else if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
         rgb_matrix_set_color_all(0, 0, 0);
