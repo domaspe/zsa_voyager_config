@@ -90,18 +90,18 @@ finger. That is what keeps every shortcut on one hand.
 
 ## Layer 1 — hold Enter (`LT1`)
 
-Symbols on the left, character-by-character movement on the right, F keys on the
-top row.
+Symbols on the left, tab switching in the outer column, F keys on the top row,
+Mac mode alone in the bottom right corner.
 
 ```
 ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│     _     │    F1     │    F2     │    F3     │    F4     │    F5     │     │    F6     │    F7     │    F8     │    F9     │    F10    │    F11    │
+│ Prev tab  │    F1     │    F2     │    F3     │    F4     │    F5     │     │    F6     │    F7     │    F8     │    F9     │    F10    │    F11    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │ Mac mode  │     \     │     |     │     {     │     }     │     │ Wheel up  │   Home    │    Up     │    End    │   PgUp    │    F12    │
+│ Next tab  │     _     │     \     │     |     │     {     │     }     │     │     _     │     _     │     _     │     _     │     _     │    F12    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│ Del word  │     _     │     <     │     >     │     [     │     ]     │     │Wheel down │   Left    │   Down    │   Right   │   PgDn    │     _     │
+│     _     │     _     │     <     │     >     │     [     │     ]     │     │     _     │     _     │     _     │     _     │     _     │     _     │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     _     │     _     │Paste plain│ \ + Enter │     │     _     │     _     │     _     │     _     │     _     │     _     │
+│     _     │     _     │     _     │     _     │Paste plain│ \ + Enter │     │     _     │     _     │     _     │     _     │     _     │ Mac mode  │
 └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
                                                  ┌───────────┬───────────┐     ┌───────────┬───────────┐
                                                  │     _     │     _     │     │     _     │     _     │
@@ -110,8 +110,9 @@ top row.
 
 ## Layer 2 — hold Bksp (`RT2`)
 
-Lighting on the left, word-by-word movement on the right, at the same positions
-layer 1 uses for single characters.
+Lighting on the left. Everything that moves the cursor or deletes on the right:
+arrows on the home row, words one row down under Left and Right, line start and
+end one row up, the two deletes under the pinky.
 
 ```
 ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
@@ -119,9 +120,9 @@ layer 1 uses for single characters.
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
 │     _     │     _     │     _     │     _     │ Bright -  │ Bright +  │     │ Wheel up  │Line start │    Up     │ Line end  │   PgUp    │    F12    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     _     │     _     │RGB on/off │ RGB next  │     │Wheel down │ Word left │   Down    │Word right │   PgDn    │     _     │
+│     _     │     _     │     _     │     _     │RGB on/off │ RGB next  │     │Wheel down │   Left    │   Down    │   Right   │   PgDn    │     _     │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     _     │     _     │ RGB solid │Layer LEDs │     │Paste plain│ \ + Enter │ Prev tab  │ Next tab  │     _     │     _     │
+│     _     │     _     │     _     │     _     │ RGB solid │Layer LEDs │     │     _     │ Word left │     _     │Word right │ Del line  │ Del word  │
 └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
                                                  ┌───────────┬───────────┐     ┌───────────┬───────────┐
                                                  │     _     │     _     │     │     _     │     _     │
@@ -130,77 +131,91 @@ layer 1 uses for single characters.
 
 ## Colours
 
-Each key glows in one of seven colours. Blue is the base layer's colour and
-appears nowhere else: a blue key tells you no layer is held, so F1 can never be
-mistaken for `1`. On layers 1 and 2 only the keys the layer changes light up,
-plus the held thumb; everything marked `_` is dark.
+Each key glows in one of nine colours: eight neon hues and white. Blue is the
+base layer's colour and appears nowhere else: a blue key tells you no layer is
+held, so F1 can never be mistaken for `1`. On the base layer blue is every key
+that only types, and every other colour marks a key that does something when
+held. On layers 1 and 2 only the keys the layer changes light up, plus the held
+thumb; everything marked `_` is dark.
 
-A colour keeps its meaning for a group that exists on both layers (arrows,
-PgUp/PgDn, wheel, Home/End and Line start/end, Paste plain and `\` + Enter, F
-keys). Beyond that a colour is reused, and may mean one thing on one layer and
-another elsewhere. Two groups that touch never share a colour. The grid for the
-layer you are on is the reference.
+Four colours keep one meaning wherever they appear: white is Mac mode or a key
+that changes the board itself, lime is the F keys, green is the two layer
+thumbs, red is the mouse wherever the layer has a mouse key. Every other colour means one thing per
+layer, and two groups that touch never share a colour. The grid for the layer
+you are on is the reference.
 
-| Colour | Looks like | Base                                                                                   | Layer 1                                                                                                              | Layer 2                                                                           |
-| ------ | ---------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| blue   | `#0000FF`  | keys that type: letters, digits, `` ` ``, Tab, `-`, `=`, `;`, `,`                      | —                                                                                                                    | —                                                                                 |
-| cyan   | `#00FFF6`  | —                                                                                      | arrows (`R2-3`, `R3-2`, `R3-3`, `R3-4`); `<` `>` (`L3-3`, `L3-4`)                                                    | arrows; RGB on/off, RGB next, RGB solid (`L3-5`, `L3-6`, `L4-5`)                  |
-| green  | `#42FF00`  | layer thumbs Enter (`LT1`) and Bksp (`RT2`)                                            | F1–F12; the held Enter; `[` `]` (`L3-5`, `L3-6`)                                                                     | F1–F12; the held Bksp; Word left, Word right (`R3-2`, `R3-4`)                     |
-| orange | `#FF7E00`  | 5/Click (`L1-6`), the hold is a mouse click                                            | Wheel up, Wheel down (`R2-1`, `R3-1`)                                                                                | Wheel up, Wheel down; Prev tab, Next tab (`R4-3`, `R4-4`)                         |
-| purple | `#B400FF`  | fixed modifiers: Shift (`L3-1`, `R3-6`), Ctrl (`L4-1`, `R4-6`), Alt (`L4-3`, `R4-4`)   | Home, End (`R2-2`, `R2-4`); `\` `\|` (`L2-3`, `L2-4`); Del word (`L3-1`), Paste plain (`L4-5`), `\` + Enter (`L4-6`) | Line start, Line end (`R2-2`, `R2-4`); Paste plain (`R4-1`), `\` + Enter (`R4-2`) |
-| red    | `#FF001E`  | keys that change with the system: Esc (`LT2`), Space (`RT1`), Z (`L4-2`), `/` (`R4-5`) | PgUp, PgDn (`R2-5`, `R3-5`); `{` `}` (`L2-5`, `L2-6`)                                                                | PgUp, PgDn; Bright −, Bright + (`L2-5`, `L2-6`)                                   |
-| white  | `#FFFFFF`  | Mac mode indicator on Ctrl (`L4-1`)                                                    | Mac mode (`L2-2`); the indicator                                                                                     | Layer LEDs (`L4-6`); the indicator                                                |
+| Colour | Looks like | Base                                                                                                           | Layer 1                                                                                                                                                                                              | Layer 2                                                                                                                                |
+| ------ | ---------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| blue   | `#0021FF`  | every key that only types: letters, digits, `` ` ``, Tab, `-`, `=`, `;`, `,`                                   | —                                                                                                                                                                                                    | —                                                                                                                                      |
+| orange | `#FFA800`  | fixed modifiers: Shift (`L3-1`, `R3-6`), Ctrl (`L4-1`, `R4-6`), Alt (`L4-3`, `R4-4`)                           | `[` `]` (`L3-5`, `L3-6`)                                                                                                                                                                             | words: Word left, Word right, Del word (`R4-2`, `R4-4`, `R4-6`)                                                                        |
+| pink   | `#FF00B4`  | holds that change with the system, while Mac mode is off: Esc (`LT2`), Space (`RT1`), Z (`L4-2`), `/` (`R4-5`) | shortcut keys, which send a shortcut or a sequence rather than a character: Prev tab, Next tab (`L1-1`, `L2-1`), Paste plain (`L4-5`), `\` + Enter (`L4-6`); Mac mode (`R4-6`) while Mac mode is off | pages: PgUp, PgDn (`R2-5`, `R3-5`)                                                                                                     |
+| red    | `#FF0006`  | 5/Click (`L1-6`), the hold is a mouse click                                                                    | `\` `\|` (`L2-3`, `L2-4`)                                                                                                                                                                            | Wheel up, Wheel down (`R2-1`, `R3-1`)                                                                                                  |
+| green  | `#00FF2A`  | layer thumbs Enter (`LT1`) and Bksp (`RT2`)                                                                    | the held Enter                                                                                                                                                                                       | the held Bksp                                                                                                                          |
+| lime   | `#96FF00`  | —                                                                                                              | F1–F12                                                                                                                                                                                               | F1–F12                                                                                                                                 |
+| cyan   | `#00FCFF`  | —                                                                                                              | `<` `>` (`L3-3`, `L3-4`)                                                                                                                                                                             | lines: Line start, Line end, Del line (`R2-2`, `R2-4`, `R4-5`)                                                                         |
+| purple | `#9100FF`  | —                                                                                                              | `{` `}` (`L2-5`, `L2-6`)                                                                                                                                                                             | characters: the arrows (`R2-3`, `R3-2`, `R3-3`, `R3-4`)                                                                                |
+| white  | `#FFFFFF`  | the same four keys while Mac mode is on                                                                        | Mac mode (`R4-6`) while Mac mode is on                                                                                                                                                               | the six lighting keys Bright −, Bright +, RGB on/off, RGB next, RGB solid, Layer LEDs (`L2-5`, `L2-6`, `L3-5`, `L3-6`, `L4-5`, `L4-6`) |
 
-White on `L4-1` means Mac mode, on every layer. The two white keys on the layers
-are the switches that change how the board itself behaves, the same thing the
-indicator reports. Orange is the one colour that is not neon; it marks the mouse
-keys and the two tab keys and nothing else.
+The keys that depend on the mode show the mode. Esc, Space, Z and `/` hold Ctrl
+or Win on Windows and Cmd on a Mac, so they are pink on Windows and white on a
+Mac, and you can read the mode off the base layer at any time. The Mac mode key
+on layer 1 wears the same pair, pink then white, because it is what flips them.
+The six white keys on layer 2 are the switches that change how the board itself
+lights up. No other key is ever white.
+
+On layer 2 the colour is the unit a key works on: purple moves by a character,
+orange by a word, cyan by a line, pink by a page. The position says whether the
+key moves or deletes.
 
 ### Base
 
 ```
 ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│   blue    │   blue    │   blue    │   blue    │   blue    │  orange   │     │   blue    │   blue    │   blue    │   blue    │   blue    │   blue    │
+│   blue    │   blue    │   blue    │   blue    │   blue    │    red    │     │   blue    │   blue    │   blue    │   blue    │   blue    │   blue    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
 │   blue    │   blue    │   blue    │   blue    │   blue    │   blue    │     │   blue    │   blue    │   blue    │   blue    │   blue    │   blue    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│  purple   │   blue    │   blue    │   blue    │   blue    │   blue    │     │   blue    │   blue    │   blue    │   blue    │   blue    │  purple   │
+│  orange   │   blue    │   blue    │   blue    │   blue    │   blue    │     │   blue    │   blue    │   blue    │   blue    │   blue    │  orange   │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│  purple   │    red    │  purple   │   blue    │   blue    │   blue    │     │   blue    │   blue    │   blue    │  purple   │    red    │  purple   │
+│  orange   │   pink    │  orange   │   blue    │   blue    │   blue    │     │   blue    │   blue    │   blue    │  orange   │   pink    │  orange   │
 └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
                                                  ┌───────────┬───────────┐     ┌───────────┬───────────┐
-                                                 │   green   │    red    │     │    red    │   green   │
+                                                 │   green   │   pink    │     │   pink    │   green   │
                                                  └───────────┴───────────┘     └───────────┴───────────┘
 ```
+
+The four pink keys turn white while Mac mode is on.
 
 ### Layer 1 — hold Enter (`LT1`)
 
 ```
 ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│           │   green   │   green   │   green   │   green   │   green   │     │   green   │   green   │   green   │   green   │   green   │   green   │
+│   pink    │   lime    │   lime    │   lime    │   lime    │   lime    │     │   lime    │   lime    │   lime    │   lime    │   lime    │   lime    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │   white   │  purple   │  purple   │    red    │    red    │     │  orange   │  purple   │   cyan    │  purple   │    red    │   green   │
+│   pink    │           │    red    │    red    │  purple   │  purple   │     │           │           │           │           │           │   lime    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│  purple   │           │   cyan    │   cyan    │   green   │   green   │     │  orange   │   cyan    │   cyan    │   cyan    │    red    │           │
+│           │           │   cyan    │   cyan    │  orange   │  orange   │     │           │           │           │           │           │           │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │           │           │  purple   │  purple   │     │           │           │           │           │           │           │
+│           │           │           │           │   pink    │   pink    │     │           │           │           │           │           │   pink    │
 └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
                                                  ┌───────────┬───────────┐     ┌───────────┬───────────┐
                                                  │   green   │           │     │           │           │
                                                  └───────────┴───────────┘     └───────────┴───────────┘
 ```
 
+`R4-6` shows pink in Windows mode and white in Mac mode, the same as Esc, Space, Z and `/` on base.
+
 ### Layer 2 — hold Bksp (`RT2`)
 
 ```
 ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│           │   green   │   green   │   green   │   green   │   green   │     │   green   │   green   │   green   │   green   │   green   │   green   │
+│           │   lime    │   lime    │   lime    │   lime    │   lime    │     │   lime    │   lime    │   lime    │   lime    │   lime    │   lime    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │           │           │    red    │    red    │     │  orange   │  purple   │   cyan    │  purple   │    red    │   green   │
+│           │           │           │           │   white   │   white   │     │    red    │   cyan    │  purple   │   cyan    │   pink    │   lime    │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │           │           │   cyan    │   cyan    │     │  orange   │   green   │   cyan    │   green   │    red    │           │
+│           │           │           │           │   white   │   white   │     │    red    │  purple   │  purple   │  purple   │   pink    │           │
 ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │           │           │   cyan    │   white   │     │  purple   │  purple   │  orange   │  orange   │           │           │
+│           │           │           │           │   white   │   white   │     │           │  orange   │           │  orange   │   cyan    │  orange   │
 └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
                                                  ┌───────────┬───────────┐     ┌───────────┬───────────┐
                                                  │           │           │     │           │   green   │
@@ -271,30 +286,37 @@ Ctrl + C (`L4-1` + `L4-4`) cancels.
 
 ## Movement
 
-Layer 1 moves by single characters, layer 2 by words. Same positions in both, so
-only the thumb changes.
+All on layer 2, right hand only. Arrows on the home row, words one row down
+under Left and Right, line start and end one row up, deletes under the pinky.
 
-| Purpose               | Combo          | Position                     | Fingers                           | Windows          | Mac                |
-| --------------------- | -------------- | ---------------------------- | --------------------------------- | ---------------- | ------------------ |
-| left, down, right     | Enter + J K L  | `LT1` + `R3-2` `R3-3` `R3-4` | outer thumb + index, middle, ring | arrows           | arrows             |
-| up                    | Enter + I      | `LT1` + `R2-3`               | outer thumb + middle              | arrow            | arrow              |
-| page up, page down    | Enter + P `;`  | `LT1` + `R2-5` `R3-5`        | outer thumb + pinky               | page keys        | page keys          |
-| word left, word right | Bksp + J L     | `RT2` + `R3-2` `R3-4`        | outer thumb + index, ring         | Ctrl+arrow       | Option+arrow       |
-| line start, line end  | Bksp + U O     | `RT2` + `R2-2` `R2-4`        | outer thumb + index, ring         | Home, End        | Cmd+arrow          |
-| delete word back      | Enter + Shift  | `LT1` + `L3-1`               | outer thumb + outer pinky         | Ctrl+Bksp        | Option+Bksp        |
-| select by word        | Bksp + `'` + J | `RT2` + `R3-6` + `R3-2`      | outer thumb + outer pinky + index | Shift+Ctrl+arrow | Shift+Option+arrow |
+| Purpose               | Combo          | Position                     | Fingers                           | Windows          | Mac                  |
+| --------------------- | -------------- | ---------------------------- | --------------------------------- | ---------------- | -------------------- |
+| left, down, right     | Bksp + J K L   | `RT2` + `R3-2` `R3-3` `R3-4` | outer thumb + index, middle, ring | arrows           | arrows               |
+| up                    | Bksp + I       | `RT2` + `R2-3`               | outer thumb + middle              | arrow            | arrow                |
+| page up, page down    | Bksp + P `;`   | `RT2` + `R2-5` `R3-5`        | outer thumb + pinky               | page keys        | page keys            |
+| word left, word right | Bksp + M `.`   | `RT2` + `R4-2` `R4-4`        | outer thumb + index, ring         | Ctrl+arrow       | Option+arrow         |
+| line start, line end  | Bksp + U O     | `RT2` + `R2-2` `R2-4`        | outer thumb + index, ring         | Home, End        | Cmd+arrow            |
+| delete word back      | Bksp + Del     | `RT2` + `R4-6`               | outer thumb + outer pinky         | Ctrl+Bksp        | Option+Bksp          |
+| delete to line start  | Bksp + /       | `RT2` + `R4-5`               | outer thumb + pinky               | Shift+Home, Bksp | Shift+Cmd+Left, Bksp |
+| select by word        | Bksp + `'` + M | `RT2` + `R3-6` + `R4-2`      | outer thumb + outer pinky + index | Shift+Ctrl+arrow | Shift+Option+arrow   |
+
+Delete to line start is two keystrokes sent one after the other, so holding it
+does not repeat. Every other key here repeats while held.
 
 ## Switching
 
 | Purpose             | Combo                | Position                  | Fingers                   | Windows         | Mac             |
 | ------------------- | -------------------- | ------------------------- | ------------------------- | --------------- | --------------- |
 | switch app, cycling | Esc + Tab repeatedly | `LT2` + `L2-1` repeatedly | inner thumb + outer pinky | Alt+Tab Tab Tab | Cmd+Tab Tab Tab |
-| next tab            | Bksp + `.`           | `RT2` + `R4-4`            | outer thumb + ring        | Ctrl+Tab        | Ctrl+Tab        |
-| previous tab        | Bksp + `,`           | `RT2` + `R4-3`            | outer thumb + middle      | Ctrl+Shift+Tab  | Ctrl+Shift+Tab  |
+| next tab            | Enter + Tab          | `LT1` + `L2-1`            | outer thumb + outer pinky | Ctrl+Tab        | Ctrl+Tab        |
+| previous tab        | Enter + \`           | `LT1` + `L1-1`            | outer thumb + outer pinky | Ctrl+Shift+Tab  | Ctrl+Shift+Tab  |
 
-Hold the thumb and tap the pinky as many times as you want. The modifier stays
-down, so the window list stays open through a pause and arrow keys work inside
-it. Releasing the thumb picks the highlighted window.
+App switching: hold the thumb and tap the pinky as many times as you want. The
+modifier stays down, so the window list stays open through a pause and arrow
+keys work inside it. Releasing the thumb picks the highlighted window.
+
+Previous tab also works as Enter + Shift + Tab (`LT1` + `L3-1` + `L2-1`), the
+way a regular keyboard does it: Shift on `L3-1` adds to Ctrl+Tab by itself.
 
 ## Windows key
 
@@ -317,11 +339,13 @@ it. Releasing the thumb picks the highlighted window.
 
 ## Mac mode
 
-The keyboard decides at plug-in. While Mac mode is on, the key printed Ctrl
-(`L4-1`) glows white.
+The keyboard decides at plug-in. While Mac mode is on, the four keys that change
+with it, Esc (`LT2`), Space (`RT1`), Z (`L4-2`) and `/` (`R4-5`), glow white
+instead of pink.
 
-To change it by hand: Enter + Q (`LT1` + `L2-2`), left outer thumb plus left
-pinky. Press again to change back. The choice is not remembered; unplugging and
+To change it by hand: Enter + Del (`LT1` + `R4-6`), left outer thumb plus right
+outer pinky. While Enter is held that key shows the mode in the same colours,
+pink for Windows and white for Mac. Press it to change; press again to change back. The choice is not remembered; unplugging and
 plugging in decides again.
 
 ## What needs both hands

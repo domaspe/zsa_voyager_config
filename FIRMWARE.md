@@ -6,17 +6,17 @@ Built against ZSA's QMK fork, branch `firmware25`. Source is `zsa_voyager_domas_
 
 ## Mac mode
 
-One variable, `mac_mode`, decides what four keys send. `LT2` and `RT1` send Ctrl or Cmd. `L4-2` and `R4-5` send the Windows key or Cmd. Six more keycodes read it to pick between a Windows and a Mac shortcut.
+One variable, `mac_mode`, decides what four keys send. `LT2` and `RT1` send Ctrl or Cmd. `L4-2` and `R4-5` send the Windows key or Cmd. Seven more keycodes read it to pick between a Windows and a Mac shortcut.
 
 Three things set it.
 
 - **Plug-in.** QMK's OS Detection watches how the computer sets up the USB connection. Windows, macOS and Linux each do it differently. `process_detected_host_os_user` turns Mac mode on for `OS_MACOS` and `OS_IOS`, off for `OS_WINDOWS` and `OS_LINUX`.
 - **`OS_UNSURE`** changes nothing. Behind a dock or a KVM the guess can fail, and a failed guess must not undo a choice you made by hand.
-- **`LT1` + `L2-2`** flips it either way.
+- **`LT1` + `R4-6`** flips it either way.
 
 It is never written to permanent storage. Every plug-in decides again from scratch. That is deliberate: a stale saved value is worse than a fresh guess, because you cannot see it.
 
-You can see the current value. While Mac mode is on, the `L4-1` LED is white. The code finds that LED through `g_led_config.matrix_co` from matrix row 3, column 1, so moving the layout does not silently move the light to the wrong key.
+You can see the current value on the keys it changes. The four mode-dependent holds, `LT2`, `RT1`, `L4-2` and `R4-5`, are pink in Windows mode and white in Mac mode, and the Mac mode key on layer 1 `R4-6` wears the same pair while that layer is held. `mode_keys` lists the five keycodes; `set_mode_keys_glow` scans the held layer for them and paints each one white when Mac mode is on, over the colour `glowmap` gives it. They are found by keycode, not position, so moving one in the keymap moves its light with it, and a transparent cell on a layer is never painted.
 
 Changing mode releases whatever the two thumbs are holding and cancels an app switch in progress. Without that, flipping mode mid-chord would leave a modifier stuck down.
 
@@ -32,27 +32,30 @@ So there is no swap. Only two keys differ per system, `LT2` and `RT1`, and those
 
 Six of them are nothing but a choice between two keystrokes, so they live in one table, `os_keycodes`, rather than six copies of the same branch:
 
-| Keycode       | Position                       | Windows      | Mac          |
-| ------------- | ------------------------------ | ------------ | ------------ |
-| `WORD_LEFT`   | layer 2 `R3-2`                 | Ctrl+Left    | Option+Left  |
-| `WORD_RIGHT`  | layer 2 `R3-4`                 | Ctrl+Right   | Option+Right |
-| `LINE_START`  | layer 2 `R2-2`                 | Home         | Cmd+Left     |
-| `LINE_END`    | layer 2 `R2-4`                 | End          | Cmd+Right    |
-| `DELETE_WORD` | layer 1 `L3-1`                 | Ctrl+Bksp    | Option+Bksp  |
-| `PASTE_PLAIN` | layer 1 `L4-5`, layer 2 `R4-1` | Ctrl+Shift+V | Cmd+Shift+V  |
+| Keycode       | Position       | Windows      | Mac          |
+| ------------- | -------------- | ------------ | ------------ |
+| `WORD_LEFT`   | layer 2 `R4-2` | Ctrl+Left    | Option+Left  |
+| `WORD_RIGHT`  | layer 2 `R4-4` | Ctrl+Right   | Option+Right |
+| `LINE_START`  | layer 2 `R2-2` | Home         | Cmd+Left     |
+| `LINE_END`    | layer 2 `R2-4` | End          | Cmd+Right    |
+| `DELETE_WORD` | layer 2 `R4-6` | Ctrl+Bksp    | Option+Bksp  |
+| `PASTE_PLAIN` | layer 1 `L4-5` | Ctrl+Shift+V | Cmd+Shift+V  |
 
 Press registers the chosen keystroke and release lets it go, so holding one repeats. Which keystroke went down is stored per key, so flipping mode while one is held still releases the right thing.
 
+`DELETE_LINE`, layer 2 `R4-5`, is the seventh and is not in the table because it is two keystrokes. Windows has no delete-to-line-start keystroke, so on both systems it taps Shift plus the `LINE_START` keystroke of the current mode, then Backspace: select to the line start, delete the selection. It fires on press only, so holding it does not repeat.
+
 The rest:
 
-| Keycode           | Position                       | Behaviour                                  |
-| ----------------- | ------------------------------ | ------------------------------------------ |
-| `APP_CMD_L`       | `LT2`                          | Tap Escape. Hold Ctrl, or Cmd in Mac mode. |
-| `APP_CMD_R`       | `RT1`                          | Tap Space. Hold Ctrl, or Cmd in Mac mode.  |
-| `SWITCH_TAB`      | `L2-1`                         | Tab, plus the Alt trade described below.   |
-| `MAC_TOGGLE`      | layer 1 `L2-2`                 | Flips Mac mode.                            |
-| `BACKSLASH_ENTER` | layer 1 `L4-6`, layer 2 `R4-2` | Sends `\` then Enter.                      |
-| `NUM5_CLICK`      | `L1-6`                         | Tap `5`. Hold left mouse button.           |
+| Keycode               | Position               | Behaviour                                                   |
+| --------------------- | ---------------------- | ----------------------------------------------------------- |
+| `APP_CMD_L`           | `LT2`                  | Tap Escape. Hold Ctrl, or Cmd in Mac mode.                  |
+| `APP_CMD_R`           | `RT1`                  | Tap Space. Hold Ctrl, or Cmd in Mac mode.                   |
+| `SWITCH_TAB`          | `L2-1`                 | Tab, plus the Alt trade described below.                    |
+| `NEXT_TAB`, `PREV_TAB`| layer 1 `L2-1`, `L1-1` | Ctrl+Tab, Ctrl+Shift+Tab. Plain QMK keycodes, named so the grid reads. |
+| `MAC_TOGGLE`          | layer 1 `R4-6`         | Flips Mac mode. Pink in Windows mode, white in Mac mode, like the four keys it flips. |
+| `BACKSLASH_ENTER`     | layer 1 `L4-6`         | Sends `\` then Enter.                                       |
+| `NUM5_CLICK`          | `L1-6`                 | Tap `5`. Hold left mouse button.                            |
 
 `APP_CMD_L` and `APP_CMD_R` are written as `LT(0, ...)`. Layer 0 is the base layer, so the hold does nothing by itself and `process_record_user` supplies the modifier, reading `record->tap.count` to tell a tap from a hold. Which modifier it registered is stored, and release lets go of that stored one rather than recomputing it, so a mode change between press and release cannot strand a key down.
 
@@ -141,23 +144,27 @@ The Oryx export kept colours as a flat list in LED order, which is not key order
 
 `LAYOUT.md` **Colours** says what each colour means on each layer. The rules behind it:
 
-- **Blue is base-only.** Letters, digits and plain punctuation are blue on the base layer, and nothing on a layer is blue. A blue key therefore proves no layer is held. This is why F1 is green rather than blue: on a layer the legends stop helping, and a blue top row would look like the number row.
-- **Touching groups differ.** Two keys next to each other that do different kinds of thing get different colours. Arrows against Home/End, `{ }` against `[ ]`, PgUp against F12.
-- **A group on both layers keeps its colour.** Arrows, PgUp/PgDn, the wheel, Home/End with Line start/end, the two macros and the F keys look the same whichever thumb is down.
-- **Anything else may be reused.** Purple is the fixed modifiers on base, Home/End and `\ |` on layer 1. That is fine because they never appear together. The meaning table in `LAYOUT.md` is per layer for this reason.
+- **Blue is base-only.** Every key that only types is blue on the base layer, and nothing on a layer is blue. A blue key therefore proves no layer is held. This is why F1 is lime rather than blue: on a layer the legends stop helping, and a blue top row would look like the number row.
+- **Keys that depend on the mode show the mode.** The four pink holds on base and the Mac mode key on layer 1 are pink in Windows mode and white in Mac mode. Nothing else changes colour with the mode; `L4-1` is plain orange because Ctrl is Ctrl on both systems.
+- **On base, anything not blue is a hold.** Warm colours hold a modifier: orange a fixed one (Shift, Ctrl, Alt), pink one that changes with the system (Ctrl or Cmd on `LT2` and `RT1`, Win or Cmd on `L4-2` and `R4-5`), red the mouse button. Green holds a layer. The outer columns read as a mirrored pair through this alone: blue in the top two rows, orange in the bottom two, on both sides.
+- **Four colours are constant.** White is a key that changes the board itself, lime is the F keys, green is the layer thumbs, red is the mouse wherever the layer has a mouse key. Layer 1 has no mouse key, so red is `\ |` there.
+- **Layer 2 colours by unit.** Purple moves by a character, orange by a word, cyan by a line, pink by a page. Del word is orange and Del line cyan for the same reason. Position says whether a key moves or deletes.
+- **Layer 1 colours by pair.** Each symbol pair has its own colour. Prev tab, Next tab, Paste plain and `\` + Enter share pink because all four send a shortcut or a sequence rather than a character.
+- **Touching groups differ.** Two keys next to each other that do different kinds of thing get different colours. Beyond that, hues that are neighbours on the wheel (42° apart) stay off touching keys wherever there is a choice. The one exception is PgDn (pink, `R3-5`) beside Right (purple, `R3-4`).
+- **Anything else may be reused.** Orange is fixed modifiers on base, `[ ]` on layer 1, words on layer 2. That is fine because they never appear together. The meaning table in `LAYOUT.md` is per layer for this reason.
 
-Seven colours, because every pair in the palette is at least 42° apart on the hue wheel, and that is what lets any two sit side by side without a further rule. Saturation and value are always 255. `hsv_to_rgb_with_value` scales every key by the global brightness, which `L2-5` and `L2-6` on layer 2 set and the board remembers, so a per-key shade would fight the brightness setting and fade first when it is low.
+Eight hues, each at least 42° from every other on the hue wheel, so any two can sit side by side without a further rule. In QMK's 0–255 hue scale: red 254, orange 28, lime 60, green 92, cyan 128, blue 164, purple 194, pink 224. The smallest gap is 30 units, which is 42°. Saturation and value are always 255. `hsv_to_rgb_with_value` scales every key by the global brightness, which `L2-5` and `L2-6` on layer 2 set and the board remembers, so a per-key shade would fight the brightness setting and fade first when it is low.
 
-White is shared between the Mac mode indicator and the two board switches, Mac mode on layer 1 `L2-2` and Layer LEDs on layer 2 `L4-6`. `L4-1` is purple on base and off on the layers, so white there always means Mac mode, and no other base-layer key is white.
+White means Mac mode on the five mode keys, and on layer 2 marks the six lighting keys `L2-5`, `L2-6`, `L3-5`, `L3-6`, `L4-5`, `L4-6`, which change the board itself. No other key is white, so a white key on base always means Mac mode is on.
 
-`TOGGLE_LAYER_COLOR` on layer 2 `L4-6` flips `keyboard_config.disable_layer_led`. With it on, `rgb_matrix_indicators_user` skips the grid and the plain RGB effect shows; the Mac indicator is still painted.
+`TOGGLE_LAYER_COLOR` on layer 2 `L4-6` flips `keyboard_config.disable_layer_led`. With it on, `rgb_matrix_indicators_user` skips the grid and the plain RGB effect shows; the mode keys are still painted white in Mac mode.
 
 ## Known limits
 
 - **Five combos need both hands.** They are listed at the end of `LAYOUT.md` with the reason for each.
 - **A modifier on `L4-2`, `R4-5`, `L4-3` or `R4-4` is unavailable for 150 ms after a keystroke**, because Flow Tap is suppressing it. Shortcuts from those four need a short pause first. The `LT2` and `LT1` thumbs have no such delay, and most shortcuts come from `LT2`.
 - **Escape and Cmd share `LT2`.** Any Mac shortcut that needs both, Force Quit being the one that matters, has to take Cmd from the other thumb.
-- **OS Detection is a guess.** If it lands wrong through a dock or a KVM, use `LT1` + `L2-2`. If it lands wrong every time, add `#define OS_DETECTION_KEYBOARD_RESET` to `config.h`, which makes the keyboard restart when the USB connection is set up again and usually fixes a stale reading. It costs a visible restart on every plug-in, so do not add it without the problem.
+- **OS Detection is a guess.** If it lands wrong through a dock or a KVM, use `LT1` + `R4-6`. If it lands wrong every time, add `#define OS_DETECTION_KEYBOARD_RESET` to `config.h`, which makes the keyboard restart when the USB connection is set up again and usually fixes a stale reading. It costs a visible restart on every plug-in, so do not add it without the problem.
 
 ## Build
 
@@ -275,9 +282,9 @@ A compile proves the code builds. Only typing proves it works.
 
 **Mode**
 
-1. Plug into Windows. `L4-1` stays dark.
-2. Plug into a Mac. `L4-1` turns white within about a second.
-3. `LT1` + `L2-2` flips the light and the mode. Again flips it back.
+1. Plug into Windows. `LT2`, `RT1`, `L4-2` and `R4-5` are pink.
+2. Plug into a Mac. The same four turn white within about a second. `L4-1` stays orange.
+3. `LT1` + `R4-6` flips the four lights and the mode. Again flips it back. While `LT1` is held, `R4-6` is pink in Windows mode and white in Mac mode.
 
 **Same finger, both systems**
 
@@ -290,14 +297,14 @@ A compile proves the code builds. Only typing proves it works.
 
 8. Hold `LT2`, tap `L2-1` three times, pause with the thumb still down, then release. The list must stay open through the pause and land on the third window.
 9. Release the thumb and type a letter. It must be plain, with no Alt or Ctrl left down.
-10. `RT2` + `R4-4` moves to the next browser tab.
+10. `LT1` + `L2-1` moves to the next browser tab, `LT1` + `L1-1` and `LT1` + `L3-1` + `L2-1` to the previous one.
 
 **Movement**
 
-11. `RT2` + `R3-2` and `R3-4` jump one word.
+11. `RT2` + `R3-2` and `R3-4` move one character, `RT2` + `R4-2` and `R4-4` one word.
 12. `RT2` + `R2-2` and `R2-4` reach line start and end. On the Mac test in a text field, not only in a terminal.
-13. `RT2` + `R3-6` + `R3-2` selects the previous word with one hand.
-14. `LT1` + `L3-1` deletes the word before the cursor.
+13. `RT2` + `R3-6` + `R4-2` selects the previous word with one hand.
+14. `RT2` + `R4-6` deletes the word before the cursor. `RT2` + `R4-5` deletes back to the line start, on both systems and in a browser text field on the Mac.
 
 **Typing safety**
 
@@ -311,7 +318,8 @@ A compile proves the code builds. Only typing proves it works.
 
 **Colours**
 
-22. Base layer: blue everywhere except purple on `L3-1`, `R3-6`, `L4-1`, `R4-6`, `L4-3`, `R4-4`; red on `L4-2`, `R4-5`, `LT2`, `RT1`; green on `LT1`, `RT2`; orange on `L1-6`.
-23. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: green top row, nothing blue, everything marked `_` dark.
-24. Hold `RT2`. Same for the layer 2 grid.
-25. In Mac mode `L4-1` is white on the base layer and on both layers.
+22. Base layer: blue everywhere except orange on `L3-1`, `R3-6`, `L4-1`, `R4-6`, `L4-3`, `R4-4`; pink on `L4-2`, `R4-5`, `LT2`, `RT1`; green on `LT1`, `RT2`; red on `L1-6`.
+23. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: lime top row, four symbol pairs in four colours, nothing blue, nothing lit on the right hand except F6–F12 and `R4-6`, everything marked `_` dark. `LT1` + `R2-1` types `y` and does not scroll.
+24. Hold `RT2`. Same for the layer 2 grid: six white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance.
+25. In Mac mode `LT2`, `RT1`, `L4-2` and `R4-5` are white on the base layer, `R4-6` is white on layer 1, and nothing else changes.
+26. Judge orange against lime, and lime against green, by eye. If two read alike, move a hue in `glow_palette` and keep every gap at 30 units or more.

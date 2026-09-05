@@ -16,11 +16,14 @@ enum custom_keycodes {
     LINE_START,
     LINE_END,
     DELETE_WORD,
+    DELETE_LINE,
 };
 
 #define APP_CMD_L  LT(0, KC_ESCAPE)
 #define APP_CMD_R  LT(0, KC_SPACE)
 #define NUM5_CLICK LT(1, KC_F17)
+#define NEXT_TAB   LCTL(KC_TAB)
+#define PREV_TAB   LCTL(LSFT(KC_TAB))
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [0] = LAYOUT_voyager(
@@ -31,17 +34,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                                                     LT(1, KC_ENTER), APP_CMD_L,             APP_CMD_R,     LT(2, KC_BSPC)
     ),
     [1] = LAYOUT_voyager(
-        _______,       KC_F1,         KC_F2,         KC_F3,         KC_F4,         KC_F5,                   KC_F6,         KC_F7,         KC_F8,         KC_F9,         KC_F10,           KC_F11,
-        _______,       MAC_TOGGLE,    KC_BSLS,       KC_PIPE,       KC_LCBR,       KC_RCBR,                 KC_MS_WH_UP,   KC_HOME,       KC_UP,         KC_END,        KC_PAGE_UP,       KC_F12,
-        DELETE_WORD,   _______,       KC_LABK,       KC_RABK,       KC_LBRC,       KC_RBRC,                 KC_MS_WH_DOWN, KC_LEFT,       KC_DOWN,       KC_RIGHT,      KC_PGDN,          _______,
-        _______,       _______,       _______,       _______,       PASTE_PLAIN,   BACKSLASH_ENTER,         _______,       _______,       _______,       _______,       _______,          _______,
+        PREV_TAB,      KC_F1,         KC_F2,         KC_F3,         KC_F4,         KC_F5,                   KC_F6,         KC_F7,         KC_F8,         KC_F9,         KC_F10,           KC_F11,
+        NEXT_TAB,      _______,       KC_BSLS,       KC_PIPE,       KC_LCBR,       KC_RCBR,                 _______,       _______,       _______,       _______,       _______,          KC_F12,
+        _______,       _______,       KC_LABK,       KC_RABK,       KC_LBRC,       KC_RBRC,                 _______,       _______,       _______,       _______,       _______,          _______,
+        _______,       _______,       _______,       _______,       PASTE_PLAIN,   BACKSLASH_ENTER,         _______,       _______,       _______,       _______,       _______,          MAC_TOGGLE,
                                                                     _______,       _______,                 _______,       _______
     ),
     [2] = LAYOUT_voyager(
         _______,       KC_F1,         KC_F2,         KC_F3,         KC_F4,         KC_F5,                   KC_F6,         KC_F7,         KC_F8,         KC_F9,         KC_F10,           KC_F11,
         _______,       _______,       _______,       _______,       RGB_VAD,       RGB_VAI,                 KC_MS_WH_UP,   LINE_START,    KC_UP,         LINE_END,      KC_PAGE_UP,       KC_F12,
-        _______,       _______,       _______,       _______,       RGB_TOG,       RGB_MODE_FORWARD,        KC_MS_WH_DOWN, WORD_LEFT,     KC_DOWN,       WORD_RIGHT,    KC_PGDN,          _______,
-        _______,       _______,       _______,       _______,       RGB_SLD,       TOGGLE_LAYER_COLOR,      PASTE_PLAIN,   BACKSLASH_ENTER, LCTL(LSFT(KC_TAB)), LCTL(KC_TAB), _______,     _______,
+        _______,       _______,       _______,       _______,       RGB_TOG,       RGB_MODE_FORWARD,        KC_MS_WH_DOWN, KC_LEFT,       KC_DOWN,       KC_RIGHT,      KC_PGDN,          _______,
+        _______,       _______,       _______,       _______,       RGB_SLD,       TOGGLE_LAYER_COLOR,      _______,       WORD_LEFT,     _______,       WORD_RIGHT,    DELETE_LINE,      DELETE_WORD,
                                                                     _______,       _______,                 _______,       _______
     ),
 };
@@ -185,9 +188,13 @@ static int8_t os_keycode_index(uint16_t keycode) {
     return -1;
 }
 
+static uint16_t os_keycode_for(int8_t index) {
+    return mac_mode ? os_keycodes[index].mac : os_keycodes[index].windows;
+}
+
 static bool process_os_keycode(int8_t index, keyrecord_t *record) {
     if (record->event.pressed) {
-        os_keycode_sent[index] = mac_mode ? os_keycodes[index].mac : os_keycodes[index].windows;
+        os_keycode_sent[index] = os_keycode_for(index);
         register_code16(os_keycode_sent[index]);
     } else if (os_keycode_sent[index]) {
         unregister_code16(os_keycode_sent[index]);
@@ -274,6 +281,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
+        case DELETE_LINE:
+            if (record->event.pressed) {
+                // Windows has no delete-to-line-start keystroke, so both systems select
+                // to the line start and delete the selection.
+                tap_code16(LSFT(os_keycode_for(os_keycode_index(LINE_START))));
+                tap_code(KC_BSPC);
+            }
+            return false;
+
         case NUM5_CLICK:
             if (record->tap.count > 0) {
                 if (record->event.pressed) {
@@ -313,23 +329,27 @@ void keyboard_post_init_user(void) {
 
 enum glow {
     GLOW_OFF,
-    GLOW_BLUE,
-    GLOW_CYAN,
-    GLOW_GREEN,
-    GLOW_ORANGE,
-    GLOW_PURPLE,
     GLOW_RED,
+    GLOW_ORANGE,
+    GLOW_LIME,
+    GLOW_GREEN,
+    GLOW_CYAN,
+    GLOW_BLUE,
+    GLOW_PURPLE,
+    GLOW_PINK,
     GLOW_WHITE,
 };
 
 static const HSV glow_palette[] = {
     [GLOW_OFF]    = {   0,   0,   0 },
-    [GLOW_BLUE]   = { 170, 255, 255 },
-    [GLOW_CYAN]   = { 126, 255, 255 },
-    [GLOW_GREEN]  = {  74, 255, 255 },
-    [GLOW_ORANGE] = {  21, 255, 255 },
-    [GLOW_PURPLE] = { 200, 255, 255 },
-    [GLOW_RED]    = { 250, 255, 255 },
+    [GLOW_RED]    = { 254, 255, 255 },
+    [GLOW_ORANGE] = {  28, 255, 255 },
+    [GLOW_LIME]   = {  60, 255, 255 },
+    [GLOW_GREEN]  = {  92, 255, 255 },
+    [GLOW_CYAN]   = { 128, 255, 255 },
+    [GLOW_BLUE]   = { 164, 255, 255 },
+    [GLOW_PURPLE] = { 194, 255, 255 },
+    [GLOW_PINK]   = { 224, 255, 255 },
     [GLOW_WHITE]  = {   0,   0, 255 },
 };
 
@@ -337,32 +357,32 @@ static const HSV glow_palette[] = {
 // different layers. What each colour means where is the Colours section of
 // LAYOUT.md; the rule for picking them is the Lighting section of FIRMWARE.md.
 // GLOW_OFF must stay 0, because LAYOUT_voyager fills the unused matrix cells
-// with KC_NO.
+// with KC_NO. Keys whose hold changes with the system, and the Mac mode key,
+// are entered as their Windows-mode colour; while Mac mode is on,
+// rgb_matrix_indicators_user paints them white instead.
 const uint8_t PROGMEM glowmap[][MATRIX_ROWS][MATRIX_COLS] = {
     [0] = LAYOUT_voyager(
-        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_ORANGE,      GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,
+        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_RED,         GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,
         GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,
-        GLOW_PURPLE,  GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_PURPLE,
-        GLOW_PURPLE,  GLOW_RED,     GLOW_PURPLE,  GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_PURPLE,  GLOW_RED,     GLOW_PURPLE,
-                                                                GLOW_GREEN,   GLOW_RED,         GLOW_RED,     GLOW_GREEN
+        GLOW_ORANGE,  GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_ORANGE,
+        GLOW_ORANGE,  GLOW_PINK,    GLOW_ORANGE,  GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,        GLOW_BLUE,    GLOW_BLUE,    GLOW_BLUE,    GLOW_ORANGE,  GLOW_PINK,    GLOW_ORANGE,
+                                                                GLOW_GREEN,   GLOW_PINK,        GLOW_PINK,    GLOW_GREEN
     ),
     [1] = LAYOUT_voyager(
-        GLOW_OFF,     GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,       GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,
-        GLOW_OFF,     GLOW_WHITE,   GLOW_PURPLE,  GLOW_PURPLE,  GLOW_RED,     GLOW_RED,         GLOW_ORANGE,  GLOW_PURPLE,  GLOW_CYAN,    GLOW_PURPLE,  GLOW_RED,     GLOW_GREEN,
-        GLOW_PURPLE,  GLOW_OFF,     GLOW_CYAN,    GLOW_CYAN,    GLOW_GREEN,   GLOW_GREEN,       GLOW_ORANGE,  GLOW_CYAN,    GLOW_CYAN,    GLOW_CYAN,    GLOW_RED,     GLOW_OFF,
-        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_PURPLE,  GLOW_PURPLE,      GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,
+        GLOW_PINK,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,        GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,
+        GLOW_PINK,    GLOW_OFF,     GLOW_RED,     GLOW_RED,     GLOW_PURPLE,  GLOW_PURPLE,      GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_LIME,
+        GLOW_OFF,     GLOW_OFF,     GLOW_CYAN,    GLOW_CYAN,    GLOW_ORANGE,  GLOW_ORANGE,      GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_PINK,    GLOW_PINK,        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_PINK,
                                                                 GLOW_GREEN,   GLOW_OFF,         GLOW_OFF,     GLOW_OFF
     ),
     [2] = LAYOUT_voyager(
-        GLOW_OFF,     GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,       GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,   GLOW_GREEN,
-        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_RED,     GLOW_RED,         GLOW_ORANGE,  GLOW_PURPLE,  GLOW_CYAN,    GLOW_PURPLE,  GLOW_RED,     GLOW_GREEN,
-        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_CYAN,    GLOW_CYAN,        GLOW_ORANGE,  GLOW_GREEN,   GLOW_CYAN,    GLOW_GREEN,   GLOW_RED,     GLOW_OFF,
-        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_CYAN,    GLOW_WHITE,       GLOW_PURPLE,  GLOW_PURPLE,  GLOW_ORANGE,  GLOW_ORANGE,  GLOW_OFF,     GLOW_OFF,
+        GLOW_OFF,     GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,        GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_WHITE,   GLOW_WHITE,       GLOW_RED,     GLOW_CYAN,    GLOW_PURPLE,  GLOW_CYAN,    GLOW_PINK,    GLOW_LIME,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_WHITE,   GLOW_WHITE,       GLOW_RED,     GLOW_PURPLE,  GLOW_PURPLE,  GLOW_PURPLE,  GLOW_PINK,    GLOW_OFF,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_WHITE,   GLOW_WHITE,       GLOW_OFF,     GLOW_ORANGE,  GLOW_OFF,     GLOW_ORANGE,  GLOW_CYAN,    GLOW_ORANGE,
                                                                 GLOW_OFF,     GLOW_OFF,         GLOW_OFF,     GLOW_GREEN
     ),
 };
-
-static const keypos_t mac_mode_indicator_key = { .row = 3, .col = 1 };
 
 static void set_led_glow(uint8_t led, enum glow glow) {
     RGB rgb = hsv_to_rgb_with_value(glow_palette[glow]);
@@ -381,12 +401,34 @@ static void set_layer_color(uint8_t layer) {
     }
 }
 
-static void set_mac_mode_indicator(void) {
-    uint8_t led = g_led_config.matrix_co[mac_mode_indicator_key.row][mac_mode_indicator_key.col];
-    if (led == NO_LED) {
-        return;
+// The keys that send something different in Mac mode, plus the key that flips it.
+// They show the mode: their glowmap colour on Windows, white on a Mac.
+static const uint16_t mode_keys[] = { APP_CMD_L, APP_CMD_R, LGUI_T(KC_Z), RGUI_T(KC_SLASH), MAC_TOGGLE };
+
+static bool is_mode_key(uint16_t keycode) {
+    for (uint8_t i = 0; i < ARRAY_SIZE(mode_keys); i++) {
+        if (mode_keys[i] == keycode) {
+            return true;
+        }
     }
-    set_led_glow(led, GLOW_WHITE);
+    return false;
+}
+
+// Found by keycode, not by position, so moving a key in the keymap moves its
+// light with it. Transparent cells on a layer are not mode keys and stay dark.
+static void set_mode_keys_glow(uint8_t layer) {
+    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
+        for (uint8_t col = 0; col < MATRIX_COLS; col++) {
+            keypos_t key = { .row = row, .col = col };
+            if (!is_mode_key(keymap_key_to_keycode(layer, key))) {
+                continue;
+            }
+            uint8_t led = g_led_config.matrix_co[row][col];
+            if (led != NO_LED) {
+                set_led_glow(led, GLOW_WHITE);
+            }
+        }
+    }
 }
 
 bool rgb_matrix_indicators_user(void) {
@@ -402,7 +444,7 @@ bool rgb_matrix_indicators_user(void) {
     }
 
     if (mac_mode) {
-        set_mac_mode_indicator();
+        set_mode_keys_glow(layer);
     }
 
     return true;
