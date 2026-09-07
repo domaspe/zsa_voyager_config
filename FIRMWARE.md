@@ -177,9 +177,9 @@ Two effects, one switch. `EFFECTS_TOGGLE` on layer 2 `L3-6` flips `effects_on`, 
 
 The dip is a fraction of the key's own value, not a fixed amount, so it survives `rgb_at_brightness` scaling every key by the global brightness set with `L2-5`: at any brightness a fresh press is a quarter dimmer than its neighbours and the return looks the same. Dark keys (value 0) come out of the same formula unchanged, so they need no special case. An earlier version lowered saturation towards white instead; that was dropped because the layers already have dark keys, and a pale key read as a third state.
 
-**Pulse.** The five mode keys breathe between 70 % and full brightness, all in step. `pulse` takes `g_rgb_timer`, QMK's frame clock in ms, divides it by 8 and feeds it to `sin8`, so one breath is 2048 ms. Only `paint_layer` calls it, for the mode keys, after picking white or the glowmap colour and before `linger`, so a pressed mode key dips from wherever its breath is. `sin8` comes from `lib/lib8tion/lib8tion.h`, which `QMK_KEYBOARD_H` does not pull in, hence the include at the top of `keymap.c`.
+**Pulse.** The five mode keys breathe between full and 60 % brightness, all in step. `pulse` takes `g_rgb_timer`, QMK's frame clock in ms, divides it by 12 and feeds it to `sin8`, so one breath is 3072 ms. The dip, `255 - sin8`, is squared before it lowers the value, so the keys rest at full for most of the cycle and sink only briefly; the shape is an upside-down `e^sin` breathing curve, within a few percent, at the cost of one multiply. Only `paint_layer` calls it, for the mode keys, after picking white or the glowmap colour and before `linger`, so a pressed mode key dips from wherever its breath is. `sin8` comes from `lib/lib8tion/lib8tion.h`, which `QMK_KEYBOARD_H` does not pull in, hence the include at the top of `keymap.c`.
 
-`rgb_matrix_indicators_user` runs once per frame, every 26 ms (`led_flush_limit` in the board's `keyboard.json`), so the 400 ms linger has about fifteen steps and a breath about eighty.
+`rgb_matrix_indicators_user` runs once per frame, every 26 ms (`led_flush_limit` in the board's `keyboard.json`), so the 400 ms linger has about fifteen steps and a breath about 120.
 
 None of QMK's own animations is compiled in. The board's `keyboard.json` enables them all and `config.h` removes every one with `#undef`. QMK's press tracker is compiled only while a reactive effect is enabled, so `config.h` asks for it directly with `RGB_MATRIX_KEYPRESSES`. The effect index the board remembers from an older build may now point at nothing; that draws nothing and the grid paints every LED on top, so it is invisible.
 
@@ -241,7 +241,7 @@ A compile proves the code builds. Only typing proves it works.
 **Effects**
 
 27. Type a few words on base. Each pressed key drops to about three quarters, stays there, and snaps back to full within half a second.
-28. Watch `LT2`, `RT1`, `L4-2` and `R4-5` on base without typing. They breathe together, about one breath every two seconds, never below roughly two thirds. No other key moves. Hold `LT1`: `R4-6` breathes the same way.
+28. Watch `LT2`, `RT1`, `L4-2` and `R4-5` on base without typing. They breathe together, about one breath every three seconds: at full for most of it, a short sink to roughly 60 %, and back. No other key moves. Hold `LT1`: `R4-6` breathes the same way.
 29. Hold `RT2` and tap `L3-6`. Type again: no dip, and the mode keys hold steady. `RT2` + `L3-6` once more brings both back.
 30. Unplug and plug in again. Both effects are back without touching anything.
 31. In Mac mode, `LT2`, `RT1`, `L4-2` and `R4-5` are white, breathe, and dip when pressed like any other key.

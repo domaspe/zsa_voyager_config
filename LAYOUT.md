@@ -126,9 +126,9 @@ grid for the layer you are on is the reference.
 Two effects move. A pressed key lingers: it dims by a quarter, holds there, and comes
 back to full in a quick rise at the end of 0.4 s, so the last few keys you
 typed trail behind you as a dim wake. The five mode keys, Esc, Space, Z, `/`
-and Mac mode on layer 1, breathe: they swing slowly between 70 % and full
-brightness, about one breath every 2 s, in pink or white. No other key moves on
-its own. Effects (layer 2 `L3-6`) turns both off and on together. The board
+and Mac mode on layer 1, breathe: they rest at full and sink briefly to
+about 60 %, about one breath every 3 s, in pink or white. No other key moves
+on its own. Effects (layer 2 `L3-6`) turns both off and on together. The board
 does not remember the choice; after every plug-in both are on. Keys that are
 dark on a layer stay dark.
 

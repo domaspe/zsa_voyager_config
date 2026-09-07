@@ -481,13 +481,16 @@ static HSV linger(uint8_t led, HSV hsv) {
     return hsv;
 }
 
-// Pulse: the mode keys breathe between 70 % and full over about 2 s, all in
-// step. g_rgb_timer / 8 makes one sin8 cycle 2048 ms.
+// Pulse: the mode keys breathe between full and 60 % over about 3 s, all in
+// step. The dip is squared, so the light rests at full for most of the cycle
+// and sinks only briefly. g_rgb_timer / 12 makes one sin8 cycle 3072 ms.
 static HSV pulse(HSV hsv) {
     if (!effects_on) {
         return hsv;
     }
-    hsv.v -= (hsv.v * 3 / 10) * (255 - sin8(g_rgb_timer / 8)) / 255;
+    uint8_t dip = 255 - sin8(g_rgb_timer / 12);
+    dip         = (uint16_t)dip * dip / 255;
+    hsv.v -= (hsv.v * 4 / 10) * dip / 255;
     return hsv;
 }
 
