@@ -1,12 +1,14 @@
 #include QMK_KEYBOARD_H
 #include "version.h"
+#include <lib/lib8tion/lib8tion.h>
 #define MOON_LED_LEVEL LED_LEVEL
 #ifndef ZSA_SAFE_RANGE
 #define ZSA_SAFE_RANGE SAFE_RANGE
 #endif
 
 enum custom_keycodes {
-    LINGER_TOGGLE = ZSA_SAFE_RANGE,
+    EFFECTS_TOGGLE = ZSA_SAFE_RANGE,
+    BRIGHT_CYCLE,
     BACKSLASH_ENTER,
     MAC_TOGGLE,
     SWITCH_TAB,
@@ -42,8 +44,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
     [2] = LAYOUT_voyager(
         _______,       KC_F1,         KC_F2,         KC_F3,         KC_F4,         KC_F5,                   KC_F6,         KC_F7,         KC_F8,         KC_F9,         KC_F10,           KC_F11,
-        _______,       _______,       _______,       _______,       RGB_VAD,       RGB_VAI,                 KC_MS_WH_UP,   LINE_START,    KC_UP,         LINE_END,      KC_PAGE_UP,       KC_F12,
-        _______,       _______,       _______,       _______,       RGB_TOG,       LINGER_TOGGLE,           KC_MS_WH_DOWN, KC_LEFT,       KC_DOWN,       KC_RIGHT,      KC_PGDN,          _______,
+        _______,       _______,       _______,       _______,       BRIGHT_CYCLE,  _______,                 KC_MS_WH_UP,   LINE_START,    KC_UP,         LINE_END,      KC_PAGE_UP,       KC_F12,
+        _______,       _______,       _______,       _______,       RGB_TOG,       EFFECTS_TOGGLE,           KC_MS_WH_DOWN, KC_LEFT,       KC_DOWN,       KC_RIGHT,      KC_PGDN,          _______,
         _______,       _______,       _______,       _______,       _______,       _______,                 _______,       WORD_LEFT,     _______,       WORD_RIGHT,    DELETE_LINE,      DELETE_WORD,
                                                                     _______,       _______,                 _______,       _______
     ),
@@ -58,7 +60,7 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT_voyage
 );
 
 static bool     mac_mode;
-static bool     linger_on = true;
+static bool     effects_on = true;
 static uint16_t left_app_command_held;
 static uint16_t right_app_command_held;
 static bool     app_switch_alt_held;
@@ -222,6 +224,30 @@ static bool process_app_command(uint16_t *held, uint16_t tap_keycode, uint16_t w
     return false;
 }
 
+// One key cycles brightness through quarters of the board's maximum:
+// 0, 25, 50, 75, 100 %, then back to 0. The current value is snapped to the
+// nearest stage first, so a value left by an older build or by Oryx lands on
+// the ladder after one press.
+static const uint8_t brightness_stages[] = {
+    0,
+    RGB_MATRIX_MAXIMUM_BRIGHTNESS * 1 / 4,
+    RGB_MATRIX_MAXIMUM_BRIGHTNESS * 2 / 4,
+    RGB_MATRIX_MAXIMUM_BRIGHTNESS * 3 / 4,
+    RGB_MATRIX_MAXIMUM_BRIGHTNESS,
+};
+
+static void cycle_brightness(void) {
+    uint8_t value   = rgb_matrix_get_val();
+    uint8_t nearest = 0;
+    for (uint8_t i = 1; i < ARRAY_SIZE(brightness_stages); i++) {
+        if (abs((int16_t)brightness_stages[i] - value) < abs((int16_t)brightness_stages[nearest] - value)) {
+            nearest = i;
+        }
+    }
+    uint8_t next = (nearest + 1) % ARRAY_SIZE(brightness_stages);
+    rgb_matrix_sethsv(rgb_matrix_get_hue(), rgb_matrix_get_sat(), brightness_stages[next]);
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     int8_t os_index = os_keycode_index(keycode);
     if (os_index >= 0) {
@@ -307,9 +333,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
-        case LINGER_TOGGLE:
+        case EFFECTS_TOGGLE:
             if (record->event.pressed) {
-                linger_on = !linger_on;
+                effects_on = !effects_on;
+            }
+            return false;
+
+        case BRIGHT_CYCLE:
+            if (record->event.pressed) {
+                cycle_brightness();
             }
             return false;
     }
@@ -378,20 +410,34 @@ const uint8_t PROGMEM glowmap[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
     [2] = LAYOUT_voyager(
         GLOW_OFF,     GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,        GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,    GLOW_LIME,
-        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_WHITE,   GLOW_WHITE,       GLOW_RED,     GLOW_CYAN,    GLOW_PURPLE,  GLOW_CYAN,    GLOW_PINK,    GLOW_LIME,
+        GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_WHITE,   GLOW_OFF,         GLOW_RED,     GLOW_CYAN,    GLOW_PURPLE,  GLOW_CYAN,    GLOW_PINK,    GLOW_LIME,
         GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_WHITE,   GLOW_WHITE,       GLOW_RED,     GLOW_PURPLE,  GLOW_PURPLE,  GLOW_PURPLE,  GLOW_PINK,    GLOW_OFF,
         GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,     GLOW_OFF,         GLOW_OFF,     GLOW_ORANGE,  GLOW_OFF,     GLOW_ORANGE,  GLOW_CYAN,    GLOW_ORANGE,
                                                                 GLOW_OFF,     GLOW_OFF,         GLOW_OFF,     GLOW_GREEN
     ),
 };
 
-// Linger: a pressed key dims to half and comes back to full over linger_ms.
-// The dip is a fraction of the key's own value, so it scales with the global
-// brightness instead of fighting it. Dark keys stay dark with no special case.
+// Linger: a pressed key dims by a quarter, stays there, and comes back to full at
+// the end of linger_ms, on an easeInExpo curve: f(p) = 2^(10(p-1)), f(0) = 0.
+// The table holds f at 17 points times 255; a float exponent per LED per frame
+// is not worth it. The dip is a fraction of the key's own value, so it scales
+// with the global brightness instead of fighting it. Dark keys stay dark.
 static const uint16_t linger_ms = 400;
 
+static const uint8_t ease_in_expo[17] = { 0, 0, 1, 1, 1, 2, 3, 5, 8, 12, 19, 29, 45, 70, 107, 165, 255 };
+
+static uint8_t eased(uint16_t age) {
+    uint32_t scaled = (uint32_t)age * 16 * 255 / linger_ms;
+    uint8_t  index  = scaled / 255;
+    uint8_t  frac   = scaled % 255;
+    if (index >= 16) {
+        return 255;
+    }
+    return ease_in_expo[index] + (uint16_t)(ease_in_expo[index + 1] - ease_in_expo[index]) * frac / 255;
+}
+
 static HSV linger(uint8_t led, HSV hsv) {
-    if (!linger_on) {
+    if (!effects_on) {
         return hsv;
     }
     uint16_t age = linger_ms;
@@ -400,13 +446,28 @@ static HSV linger(uint8_t led, HSV hsv) {
             age = g_last_hit_tracker.tick[i];
         }
     }
-    hsv.v -= (hsv.v / 2) * (linger_ms - age) / linger_ms;
+    uint8_t dip = hsv.v / 4;
+    hsv.v       = hsv.v - dip + (uint16_t)dip * eased(age) / 255;
     return hsv;
 }
 
-static void set_led_glow(uint8_t led, enum glow glow) {
-    RGB rgb = hsv_to_rgb_with_value(linger(led, glow_palette[glow]));
+// Pulse: the mode keys breathe between 70 % and full over about 2 s, all in
+// step. g_rgb_timer / 8 makes one sin8 cycle 2048 ms.
+static HSV pulse(HSV hsv) {
+    if (!effects_on) {
+        return hsv;
+    }
+    hsv.v -= (hsv.v * 3 / 10) * (255 - sin8(g_rgb_timer / 8)) / 255;
+    return hsv;
+}
+
+static void set_led_hsv(uint8_t led, HSV hsv) {
+    RGB rgb = hsv_to_rgb_with_value(linger(led, hsv));
     rgb_matrix_set_color(led, rgb.r, rgb.g, rgb.b);
+}
+
+static void set_led_glow(uint8_t led, enum glow glow) {
+    set_led_hsv(led, glow_palette[glow]);
 }
 
 static void set_layer_color(uint8_t layer) {
@@ -422,7 +483,9 @@ static void set_layer_color(uint8_t layer) {
 }
 
 // The keys that send something different in Mac mode, plus the key that flips it.
-// They show the mode: their glowmap colour on Windows, white on a Mac.
+// They show the mode: their glowmap colour on Windows, white on a Mac. They
+// pulse in both modes, so they stand out from every other key without owning
+// a colour of their own.
 static const uint16_t mode_keys[] = { APP_CMD_L, APP_CMD_R, LGUI_T(KC_Z), RGUI_T(KC_SLASH), MAC_TOGGLE };
 
 static bool is_mode_key(uint16_t keycode) {
@@ -444,9 +507,11 @@ static void set_mode_keys_glow(uint8_t layer) {
                 continue;
             }
             uint8_t led = g_led_config.matrix_co[row][col];
-            if (led != NO_LED) {
-                set_led_glow(led, GLOW_WHITE);
+            if (led == NO_LED) {
+                continue;
             }
+            enum glow glow = mac_mode ? GLOW_WHITE : pgm_read_byte(&glowmap[layer][row][col]);
+            set_led_hsv(led, pulse(glow_palette[glow]));
         }
     }
 }
@@ -463,9 +528,7 @@ bool rgb_matrix_indicators_user(void) {
         rgb_matrix_set_color_all(0, 0, 0);
     }
 
-    if (mac_mode) {
-        set_mode_keys_glow(layer);
-    }
+    set_mode_keys_glow(layer);
 
     return true;
 }

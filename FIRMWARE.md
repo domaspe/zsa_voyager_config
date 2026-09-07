@@ -2,7 +2,9 @@
 
 Supplement to `LAYOUT.md`, which says what the keys do. This says how and why, for whoever changes it next.
 
-Built against ZSA's QMK fork, branch `firmware25`. Source is `zsa_voyager_domas_source/`.
+Built against ZSA's QMK fork, branch `firmware25`. Source is `zsa_voyager_domas_source/`. Compiling, flashing and going back are in `BUILD.md`.
+
+Contents: Mac mode · why not CG_SWAP · custom keycodes · Alt+Tab on Windows · tap-hold tuning · lighting and effects · known limits · checking after a flash.
 
 ## Mac mode
 
@@ -16,7 +18,7 @@ Three things set it.
 
 It is never written to permanent storage. Every plug-in decides again from scratch. That is deliberate: a stale saved value is worse than a fresh guess, because you cannot see it.
 
-You can see the current value on the keys it changes. The four mode-dependent holds, `LT2`, `RT1`, `L4-2` and `R4-5`, are pink in Windows mode and white in Mac mode, and the Mac mode key on layer 1 `R4-6` wears the same pair while that layer is held. `mode_keys` lists the five keycodes; `set_mode_keys_glow` scans the held layer for them and paints each one white when Mac mode is on, over the colour `glowmap` gives it. They are found by keycode, not position, so moving one in the keymap moves its light with it, and a transparent cell on a layer is never painted.
+You can see the current value on the keys it changes. The four mode-dependent holds, `LT2`, `RT1`, `L4-2` and `R4-5`, are pink in Windows mode and white in Mac mode, and the Mac mode key on layer 1 `R4-6` wears the same pair while that layer is held. All five breathe in both modes. `mode_keys` lists the five keycodes; `set_mode_keys_glow` scans the held layer for them and paints each one, white when Mac mode is on and otherwise the colour `glowmap` gives it, through the pulse described under **Effects**. They are found by keycode, not position, so moving one in the keymap moves its light with it, and a transparent cell on a layer is never painted.
 
 Changing mode releases whatever the two thumbs are holding and cancels an app switch in progress. Without that, flipping mode mid-chord would leave a modifier stuck down.
 
@@ -56,7 +58,8 @@ The rest:
 | `MAC_TOGGLE`          | layer 1 `R4-6`         | Flips Mac mode. Pink in Windows mode, white in Mac mode, like the four keys it flips. |
 | `BACKSLASH_ENTER`     | layer 1 `L4-6`         | Sends `\` then Enter.                                       |
 | `NUM5_CLICK`          | `L1-6`                 | Tap `5`. Hold left mouse button.                            |
-| `LINGER_TOGGLE`       | layer 2 `L3-6`         | Turns the linger effect off and on. Not saved; on at power-up. See **Lighting**. |
+| `EFFECTS_TOGGLE`      | layer 2 `L3-6`         | Turns linger and the mode-key pulse off and on together. Not saved; on at power-up. See **Effects**. |
+| `BRIGHT_CYCLE`        | layer 2 `L2-5`         | Brightness one stage up, wrapping: 0, 25, 50, 75, 100 % of the board's maximum, then 0. Saved. See **Lighting**. |
 
 `APP_CMD_L` and `APP_CMD_R` are written as `LT(0, ...)`. Layer 0 is the base layer, so the hold does nothing by itself and `process_record_user` supplies the modifier, reading `record->tap.count` to tell a tap from a hold. Which modifier it registered is stored, and release lets go of that stored one rather than recomputing it, so a mode change between press and release cannot strand a key down.
 
@@ -146,7 +149,7 @@ The Oryx export kept colours as a flat list in LED order, which is not key order
 `LAYOUT.md` **Colours** says what each colour means on each layer. The rules behind it:
 
 - **Blue is base-only.** Every key that only types is blue on the base layer, and nothing on a layer is blue. A blue key therefore proves no layer is held. This is why F1 is lime rather than blue: on a layer the legends stop helping, and a blue top row would look like the number row.
-- **Keys that depend on the mode show the mode.** The four pink holds on base and the Mac mode key on layer 1 are pink in Windows mode and white in Mac mode. Nothing else changes colour with the mode; `L4-1` is plain orange because Ctrl is Ctrl on both systems.
+- **Keys that depend on the mode show the mode.** The four pink holds on base and the Mac mode key on layer 1 are pink in Windows mode and white in Mac mode, and they are the only keys that breathe. Nothing else changes colour with the mode; `L4-1` is plain orange because Ctrl is Ctrl on both systems.
 - **On base, anything not blue is a hold.** Warm colours hold a modifier: orange a fixed one (Shift, Ctrl, Alt), pink one that changes with the system (Ctrl or Cmd on `LT2` and `RT1`, Win or Cmd on `L4-2` and `R4-5`), red the mouse button. Green holds a layer. The outer columns read as a mirrored pair through this alone: blue in the top two rows, orange in the bottom two, on both sides.
 - **Four colours are constant.** White is a key that changes the board itself, lime is the F keys, green is the layer thumbs, red is the mouse wherever the layer has a mouse key. Layer 1 has no mouse key, so red is `\ |` there.
 - **Layer 2 colours by unit.** Purple moves by a character, orange by a word, cyan by a line, pink by a page. Del word is orange and Del line cyan for the same reason. Position says whether a key moves or deletes.
@@ -154,19 +157,21 @@ The Oryx export kept colours as a flat list in LED order, which is not key order
 - **Touching groups differ.** Two keys next to each other that do different kinds of thing get different colours. Beyond that, hues that are neighbours on the wheel (42° apart) stay off touching keys wherever there is a choice. The one exception is PgDn (pink, `R3-5`) beside Right (purple, `R3-4`).
 - **Anything else may be reused.** Orange is fixed modifiers on base, `[ ]` on layer 1, words on layer 2. That is fine because they never appear together. The meaning table in `LAYOUT.md` is per layer for this reason.
 
-Eight hues, each at least 42° from every other on the hue wheel, so any two can sit side by side without a further rule. In QMK's 0–255 hue scale: red 254, orange 28, lime 60, green 92, cyan 128, blue 164, purple 194, pink 224. The smallest gap is 30 units, which is 42°. Saturation and value are always 255. `hsv_to_rgb_with_value` scales every key by the global brightness, which `L2-5` and `L2-6` on layer 2 set and the board remembers, so a per-key shade would fight the brightness setting and fade first when it is low.
+Eight hues, each at least 42° from every other on the hue wheel, so any two can sit side by side without a further rule. In QMK's 0–255 hue scale: red 254, orange 28, lime 60, green 92, cyan 128, blue 164, purple 194, pink 224. The smallest gap is 30 units, which is 42°. Saturation and value are always 255. `hsv_to_rgb_with_value` scales every key by the global brightness, which `L2-5` on layer 2 sets and the board remembers. `cycle_brightness` keeps that value on a ladder of five stages, `brightness_stages`, at quarters of `RGB_MATRIX_MAXIMUM_BRIGHTNESS` (175 on the Voyager, set by ZSA in `keyboard.json`): it snaps the current value to the nearest stage and moves one up, wrapping from full to dark, so a value left by an older build lands on the ladder after one press and one key covers the whole range. QMK's own `RGB_VAD`/`RGB_VAI` step by 16 of 255 and need two keys and eleven presses for the same range. The scaling matters because so a per-key shade would fight the brightness setting and fade first when it is low. Both effects below dim by a fraction of the key's own value for the same reason.
 
-White means Mac mode on the five mode keys, and on layer 2 marks the four lighting keys `L2-5`, `L2-6`, `L3-5`, `L3-6`, which change the board itself. No other key is white, so a white key on base always means Mac mode is on.
+White means Mac mode on the five mode keys, and on layer 2 marks the three lighting keys `L2-5`, `L3-5`, `L3-6`, which change the board itself. No other key is white, so a white key on base always means Mac mode is on.
 
-### Linger
+### Effects
 
-A pressed key dims to half its brightness and comes back to full over 400 ms. `linger` does it: for the LED being painted it looks up the newest press in `g_last_hit_tracker`, QMK's list of recent presses with their age in ms, and scales the value by how much of `linger_ms` has passed. `set_led_glow` runs every colour through it, so it applies to the grid and to the Mac-mode white keys alike.
+Two effects, one switch. `EFFECTS_TOGGLE` on layer 2 `L3-6` flips `effects_on`, which both read. It is a plain variable, not saved to the board's settings memory, so both are on after every plug-in. That was a choice, made to keep the code small.
 
-The dip is a fraction of the key's own value, not a fixed amount, so it survives `hsv_to_rgb_with_value` scaling every key by the global brightness set with `L2-5` and `L2-6`: at any brightness a fresh press is half as bright as its neighbours and the return looks the same. Dark keys (value 0) come out of the same formula unchanged, so they need no special case. An earlier version lowered saturation towards white instead; that was dropped because the layers already have dark keys, and a pale key read as a third state.
+**Linger.** A pressed key dims to three quarters of its brightness, holds there, and comes back to full at the end of 400 ms. `linger` does it: for the LED being painted it looks up the newest press in `g_last_hit_tracker`, QMK's list of recent presses with their age in ms, and adds back the missing quarter scaled by an easeInExpo curve of the age, `f(p) = 2^(10(p-1))` with `f(0) = 0`. The curve stays near zero for most of the 400 ms and climbs steeply at the end, which is what makes the dim key hold and then snap back; a linear ramp needed a pause before the fade to read the same way, and the curve makes that pause unnecessary. `ease_in_expo` holds the curve at 17 points, `eased` interpolates between them; a float exponent for every LED on every frame is not worth it. `set_led_hsv` runs every colour through `linger`, so it applies to the grid and to the mode keys alike.
 
-`rgb_matrix_indicators_user` runs once per frame, every 26 ms (`led_flush_limit` in the board's `keyboard.json`), so the 400 ms return has about fifteen steps.
+The dip is a fraction of the key's own value, not a fixed amount, so it survives `hsv_to_rgb_with_value` scaling every key by the global brightness set with `L2-5`: at any brightness a fresh press is a quarter dimmer than its neighbours and the return looks the same. Dark keys (value 0) come out of the same formula unchanged, so they need no special case. An earlier version lowered saturation towards white instead; that was dropped because the layers already have dark keys, and a pale key read as a third state.
 
-`LINGER_TOGGLE` on layer 2 `L3-6` flips `linger_on`. It is a plain variable, not saved to the board's settings memory, so the effect is on after every plug-in. That was a choice, made to keep the code small.
+**Pulse.** The five mode keys breathe between 70 % and full brightness, all in step. `pulse` takes `g_rgb_timer`, QMK's frame clock in ms, divides it by 8 and feeds it to `sin8`, so one breath is 2048 ms. Only `set_mode_keys_glow` calls it, after picking white or the glowmap colour and before `linger`, so a pressed mode key dips from wherever its breath is. `sin8` comes from `lib/lib8tion/lib8tion.h`, which `QMK_KEYBOARD_H` does not pull in, hence the include at the top of `keymap.c`.
+
+`rgb_matrix_indicators_user` runs once per frame, every 26 ms (`led_flush_limit` in the board's `keyboard.json`), so the 400 ms linger has about fifteen steps and a breath about eighty.
 
 None of QMK's own animations is compiled in. The board's `keyboard.json` enables them all and `config.h` removes every one with `#undef`. QMK's press tracker is compiled only while a reactive effect is enabled, so `config.h` asks for it directly with `RGB_MATRIX_KEYPRESSES`. The effect index the board remembers from an older build may now point at nothing; that draws nothing and the grid paints every LED on top, so it is invisible.
 
@@ -176,116 +181,6 @@ None of QMK's own animations is compiled in. The board's `keyboard.json` enables
 - **A modifier on `L4-2`, `R4-5`, `L4-3` or `R4-4` is unavailable for 150 ms after a keystroke**, because Flow Tap is suppressing it. Shortcuts from those four need a short pause first. The `LT2` and `LT1` thumbs have no such delay, and most shortcuts come from `LT2`.
 - **Escape and Cmd share `LT2`.** Any Mac shortcut that needs both, Force Quit being the one that matters, has to take Cmd from the other thumb.
 - **OS Detection is a guess.** If it lands wrong through a dock or a KVM, use `LT1` + `R4-6`. If it lands wrong every time, add `#define OS_DETECTION_KEYBOARD_RESET` to `config.h`, which makes the keyboard restart when the USB connection is set up again and usually fixes a stale reading. It costs a visible restart on every plug-in, so do not add it without the problem.
-
-## Build
-
-Two commands, every time:
-
-```
-~/.venvs/qmk/bin/qmk compile -kb zsa/voyager -km domas
-cp ~/projects/keyboard/qmk_firmware/zsa_voyager_domas.bin \
-   '/mnt/c/Users/DomasPetkevičius/Documents/Projects/zsa_voyager_domas.bin'
-```
-
-The first writes `~/projects/keyboard/qmk_firmware/zsa_voyager_domas.bin`. The second puts it where the flasher can open it; see **Flash** below for why.
-
-`qmk compile` runs from any folder. It finds QMK through `user.qmk_home` in `~/.config/qmk/qmk.ini`. `-kb` names the folder under `keyboards/`, `-km` the folder under `keymaps/`.
-
-A clean build prints `Size after:` and copies the `.bin` out. Errors in `keymap.c` are **not** reported under that name: QMK pulls the file into `quantum/keymap_introspection.c` and compiles it there, so that is the filename in the message.
-
-### Setting up the build, once
-
-QMK's own code does most of the work, so both it and the compiler have to be on the machine.
-
-**QMK's code.** ZSA's version, not the original — the original lacks the modules this `keymap.c` needs.
-
-```
-git clone --depth 1 --shallow-submodules --recurse-submodules -b firmware25 \
-  https://github.com/zsa/qmk_firmware.git ~/projects/keyboard/qmk_firmware
-```
-
-**This layout, placed inside it.** A link, not a copy, so there is only ever one set of files to edit:
-
-```
-ln -s ~/projects/keyboard/zsa_voyager_xB6Jx_GGRD4w_domas_source/zsa_voyager_domas_source \
-      ~/projects/keyboard/qmk_firmware/keyboards/zsa/voyager/keymaps/domas
-```
-
-The link's name, `domas`, is what `-km domas` refers to.
-
-**The compiler.** The Voyager runs an STM32 chip, so it needs a compiler that produces ARM code, plus a small C library for a machine with no operating system. QMK ships the script that installs them; run it from the clone:
-
-```
-~/projects/keyboard/qmk_firmware/util/qmk_install.sh -y
-```
-
-That is the script `qmk setup` calls. On Ubuntu it runs `util/install/debian.sh`. Two of its steps are expected noise here and neither breaks anything: a warning that WSL cannot reach USB devices, which does not matter because flashing happens through a Windows program, and a closing `pip install --user` that fails on Ubuntu 24.04 with `error: externally-managed-environment`, after apt has already finished and for packages the virtual environment below already holds.
-
-Do not run `qmk setup` itself. It downloads the original QMK into `~/qmk_firmware` and repoints `user.qmk_home` at it, which loses the ZSA setup.
-
-By hand, the same two packages:
-
-```
-sudo apt install -y gcc-arm-none-eabi libnewlib-arm-none-eabi
-```
-
-`libnewlib-arm-none-eabi` is the C library. Ubuntu lists it only as a recommendation of the compiler, not a dependency, so apt normally installs it but a machine set to skip recommendations will not. Without it the build stops on `fatal error: stdint.h: No such file or directory`, which reads like a broken compiler rather than a missing library. `binutils-arm-none-eabi` needs no mention; the compiler package depends on it.
-
-Do not try Homebrew. It has `arm-none-eabi-gcc` but no `newlib` formula, so its compiler cannot build for a machine with no operating system and fails in exactly that way.
-
-**QMK's command line**, in its own virtual environment so it does not depend on whichever Python comes first on `PATH`:
-
-```
-python3 -m venv ~/.venvs/qmk
-~/.venvs/qmk/bin/pip install qmk
-~/.venvs/qmk/bin/qmk config user.qmk_home=~/projects/keyboard/qmk_firmware
-```
-
-## Flash
-
-Zapp does the flashing:
-
-```
-/mnt/c/Users/DomasPetkevičius/Documents/Projects/zapp.exe
-```
-
-It is a command line program, not a window-based one. Run `zapp.exe --help` to see its two commands, `flash` and `update`. Only `flash` is used here; `update` fetches from Oryx and would overwrite this firmware with generated code.
-
-It runs as a Windows program even when started from WSL, so it reaches the keyboard over USB. WSL's own lack of USB access does not apply.
-
-**A Windows program cannot open a WSL path** such as `/home/domas/...`. That is why the build ends with a copy into a Windows folder. Give Zapp a plain filename and run it from that folder:
-
-```
-cd '/mnt/c/Users/DomasPetkevičius/Documents/Projects' && ./zapp.exe flash zsa_voyager_domas.bin
-```
-
-### Putting the board into flash mode
-
-Zapp waits for the keyboard to appear in flash mode; it does not put it there. Its messages for this are `Waiting for keyboard in bootloader mode...`, `Failed to detect bootloader` and `Timeout waiting for bootloader`.
-
-This layout has no key that enters flash mode. `QK_BOOT` appears nowhere in `keymap.c`, and was absent from the Oryx original too. So the reset button on the board is the only way in. Find it before flashing, not while the keyboard is dead.
-
-### Going back
-
-A bad flash is recoverable. The chip holds two separate programs: the one that receives new firmware, which ZSA calls Ignition, and the keymap firmware. Flashing replaces the second and never the first, so firmware that crashes on startup cannot stop you writing over it. Zapp names both states in its device list, `Voyager (Ignition STM32)` and `Keyboard in Reset Mode (STM32 DFU)`.
-
-`zsa_voyager_xB6Jx.bin` in this repo is the build that came before this rewrite, kept for exactly this. `zsa_voyager_xB6Jx.bin.md5` holds its checksum. That file is the bare value with no filename, so `md5sum -c` cannot read it; compare the two by hand:
-
-```
-md5sum zsa_voyager_xB6Jx.bin
-cat zsa_voyager_xB6Jx.bin.md5
-```
-
-Both must read `306743d7d1156ef2fc826474ddcb92eb`.
-
-To go back, copy it to the Windows folder and flash that instead:
-
-```
-cp zsa_voyager_xB6Jx.bin '/mnt/c/Users/DomasPetkevičius/Documents/Projects/zsa_voyager_xB6Jx_RESTORE.bin'
-cd '/mnt/c/Users/DomasPetkevičius/Documents/Projects' && ./zapp.exe flash zsa_voyager_xB6Jx_RESTORE.bin
-```
-
-Keep that file until a new build has been flashed and checked.
 
 ## Checking after a flash
 
@@ -331,14 +226,20 @@ A compile proves the code builds. Only typing proves it works.
 
 22. Base layer: blue everywhere except orange on `L3-1`, `R3-6`, `L4-1`, `R4-6`, `L4-3`, `R4-4`; pink on `L4-2`, `R4-5`, `LT2`, `RT1`; green on `LT1`, `RT2`; red on `L1-6`.
 23. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: lime top row, four symbol pairs in four colours, nothing blue, nothing lit on the right hand except F6–F12 and `R4-6`, everything marked `_` dark. `LT1` + `R2-1` types `y` and does not scroll.
-24. Hold `RT2`. Same for the layer 2 grid: four white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance.
+24. Hold `RT2`. Same for the layer 2 grid: three white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance.
 25. In Mac mode `LT2`, `RT1`, `L4-2` and `R4-5` are white on the base layer, `R4-6` is white on layer 1, and nothing else changes.
 26. Judge orange against lime, and lime against green, by eye. If two read alike, move a hue in `glow_palette` and keep every gap at 30 units or more.
 
-**Linger**
+**Effects**
 
-27. Type a few words on base. Each pressed key dims to about half and is back to full within half a second.
-28. Hold `RT2` and tap `L3-6`. Type again: no dip. `RT2` + `L3-6` once more brings it back.
-29. Unplug and plug in again. The dip is back without touching anything.
-30. In Mac mode, `LT2`, `RT1`, `L4-2` and `R4-5` are white and dim like any other key.
-31. `RT2` + `L3-5` still blacks the board out, and again brings it back.
+27. Type a few words on base. Each pressed key drops to about three quarters, stays there, and snaps back to full within half a second.
+28. Watch `LT2`, `RT1`, `L4-2` and `R4-5` on base without typing. They breathe together, about one breath every two seconds, never below roughly two thirds. No other key moves. Hold `LT1`: `R4-6` breathes the same way.
+29. Hold `RT2` and tap `L3-6`. Type again: no dip, and the mode keys hold steady. `RT2` + `L3-6` once more brings both back.
+30. Unplug and plug in again. Both effects are back without touching anything.
+31. In Mac mode, `LT2`, `RT1`, `L4-2` and `R4-5` are white, breathe, and dip when pressed like any other key.
+32. `RT2` + `L3-5` still blacks the board out, and again brings it back.
+
+**Brightness**
+
+33. Hold `RT2` and tap `L2-5` five times. The board climbs in four even stages to full, goes dark on the fifth, and the sixth tap starts the climb again.
+34. Unplug and plug in again. The stage you left is back.

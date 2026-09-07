@@ -5,27 +5,27 @@ plugged into and changes four keys to match. Everything else is the same on
 both.
 
 Source of truth is `zsa_voyager_domas_source/keymap.c`. How and why it works is
-in `FIRMWARE.md`.
+in `FIRMWARE.md`; compiling and flashing is in `BUILD.md`.
+
+Contents: position codes · base layer and modifiers · layer 1 · layer 2 ·
+colours · shortcut tables (app, terminal, movement, switching, Windows key, Mac
+system) · Mac mode · what needs both hands.
 
 ## Position codes
 
 Hand, then row 1 at the top to row 4 at the bottom, then column 1 to 6 left to
-right as you look at the board.
+right as you look at the board. Every grid below is a table in this shape: the
+left half is `L`, the right half is `R`, and the row label plus the column
+header is the code, so row 4, column 2 on the left is `L4-2`. Thumbs are row
+`T`, placed under the columns they lie beneath.
 
-```
-┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│   L1-1    │   L1-2    │   L1-3    │   L1-4    │   L1-5    │   L1-6    │     │   R1-1    │   R1-2    │   R1-3    │   R1-4    │   R1-5    │   R1-6    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│   L2-1    │   L2-2    │   L2-3    │   L2-4    │   L2-5    │   L2-6    │     │   R2-1    │   R2-2    │   R2-3    │   R2-4    │   R2-5    │   R2-6    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│   L3-1    │   L3-2    │   L3-3    │   L3-4    │   L3-5    │   L3-6    │     │   R3-1    │   R3-2    │   R3-3    │   R3-4    │   R3-5    │   R3-6    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│   L4-1    │   L4-2    │   L4-3    │   L4-4    │   L4-5    │   L4-6    │     │   R4-1    │   R4-2    │   R4-3    │   R4-4    │   R4-5    │   R4-6    │
-└───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
-                                                 ┌───────────┬───────────┐     ┌───────────┬───────────┐
-                                                 │    LT1    │    LT2    │     │    RT1    │    RT2    │
-                                                 └───────────┴───────────┘     └───────────┴───────────┘
-```
+| Row | 1    | 2    | 3    | 4    | 5    | 6    |     | 1    | 2    | 3    | 4    | 5    | 6    |
+| --- | ---- | ---- | ---- | ---- | ---- | ---- | --- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 1   | L1-1 | L1-2 | L1-3 | L1-4 | L1-5 | L1-6 |     | R1-1 | R1-2 | R1-3 | R1-4 | R1-5 | R1-6 |
+| 2   | L2-1 | L2-2 | L2-3 | L2-4 | L2-5 | L2-6 |     | R2-1 | R2-2 | R2-3 | R2-4 | R2-5 | R2-6 |
+| 3   | L3-1 | L3-2 | L3-3 | L3-4 | L3-5 | L3-6 |     | R3-1 | R3-2 | R3-3 | R3-4 | R3-5 | R3-6 |
+| 4   | L4-1 | L4-2 | L4-3 | L4-4 | L4-5 | L4-6 |     | R4-1 | R4-2 | R4-3 | R4-4 | R4-5 | R4-6 |
+| T   |      |      |      |      | LT1  | LT2  |     | RT1  | RT2  |      |      |      |      |
 
 | Column | Left hand   | Right hand  |
 | ------ | ----------- | ----------- |
@@ -52,20 +52,13 @@ beside it. The base layer grid below maps one to the other.
 
 ## Base layer
 
-```
-┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│     `     │     1     │     2     │     3     │     4     │  5/Click  │     │     6     │     7     │     8     │     9     │     0     │     -     │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│    Tab    │     Q     │     W     │     E     │     R     │     T     │     │     Y     │     U     │     I     │     O     │     P     │     =     │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│   Shift   │     A     │     S     │     D     │     F     │     G     │     │     H     │     J     │     K     │     L     │     ;     │  '/Shift  │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│   Ctrl    │  Z/Win*   │   X/Alt   │     C     │     V     │     B     │     │     N     │     M     │     ,     │   ./Alt   │  //Win*   │ Del/Ctrl  │
-└───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
-                                                 ┌───────────┬───────────┐     ┌───────────┬───────────┐
-                                                 │ Enter/L1  │ Esc/Ctrl* │     │Space/Ctrl*│  Bksp/L2  │
-                                                 └───────────┴───────────┘     └───────────┴───────────┘
-```
+| Base | 1     | 2       | 3     | 4   | 5        | 6          |     | 1            | 2       | 3   | 4     | 5       | 6        |
+| ---- | ----- | ------- | ----- | --- | -------- | ---------- | --- | ------------ | ------- | --- | ----- | ------- | -------- |
+| 1    | `     | 1       | 2     | 3   | 4        | 5/Click    |     | 6            | 7       | 8   | 9     | 0       | -        |
+| 2    | Tab   | Q       | W     | E   | R        | T          |     | Y            | U       | I   | O     | P       | =        |
+| 3    | Shift | A       | S     | D   | F        | G          |     | H            | J       | K   | L     | ;       | '/Shift  |
+| 4    | Ctrl  | Z/Win\* | X/Alt | C   | V        | B          |     | N            | M       | ,   | ./Alt | //Win\* | Del/Ctrl |
+| T    |       |         |       |     | Enter/L1 | Esc/Ctrl\* |     | Space/Ctrl\* | Bksp/L2 |     |       |         |          |
 
 ## Modifiers
 
@@ -93,20 +86,13 @@ finger. That is what keeps every shortcut on one hand.
 Symbols on the left, tab switching in the outer column, F keys on the top row,
 Mac mode alone in the bottom right corner.
 
-```
-┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│ Prev tab  │    F1     │    F2     │    F3     │    F4     │    F5     │     │    F6     │    F7     │    F8     │    F9     │    F10    │    F11    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│ Next tab  │     _     │     \     │     |     │     {     │     }     │     │     _     │     _     │     _     │     _     │     _     │    F12    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     <     │     >     │     [     │     ]     │     │     _     │     _     │     _     │     _     │     _     │     _     │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     _     │     _     │Paste plain│ \ + Enter │     │     _     │     _     │     _     │     _     │     _     │ Mac mode  │
-└───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
-                                                 ┌───────────┬───────────┐     ┌───────────┬───────────┐
-                                                 │     _     │     _     │     │     _     │     _     │
-                                                 └───────────┴───────────┘     └───────────┴───────────┘
-```
+| Layer 1 | 1        | 2   | 3   | 4   | 5           | 6         |     | 1   | 2   | 3   | 4   | 5   | 6        |
+| ------- | -------- | --- | --- | --- | ----------- | --------- | --- | --- | --- | --- | --- | --- | -------- |
+| 1       | Prev tab | F1  | F2  | F3  | F4          | F5        |     | F6  | F7  | F8  | F9  | F10 | F11      |
+| 2       | Next tab | \_  | \   | \|  | {           | }         |     | \_  | \_  | \_  | \_  | \_  | F12      |
+| 3       | \_       | \_  | <   | >   | [           | ]         |     | \_  | \_  | \_  | \_  | \_  | \_       |
+| 4       | \_       | \_  | \_  | \_  | Paste plain | \ + Enter |     | \_  | \_  | \_  | \_  | \_  | Mac mode |
+| T       |          |     |     |     | \_          | \_        |     | \_  | \_  |     |     |     |          |
 
 ## Layer 2 — hold Bksp (`RT2`)
 
@@ -114,20 +100,13 @@ Lighting on the left. Everything that moves the cursor or deletes on the right:
 arrows on the home row, words one row down under Left and Right, line start and
 end one row up, the two deletes under the pinky.
 
-```
-┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│     _     │    F1     │    F2     │    F3     │    F4     │    F5     │     │    F6     │    F7     │    F8     │    F9     │    F10    │    F11    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     _     │     _     │ Bright -  │ Bright +  │     │ Wheel up  │Line start │    Up     │ Line end  │   PgUp    │    F12    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     _     │     _     │RGB on/off │  Linger   │     │Wheel down │   Left    │   Down    │   Right   │   PgDn    │     _     │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│     _     │     _     │     _     │     _     │     _     │     _     │     │     _     │ Word left │     _     │Word right │ Del line  │ Del word  │
-└───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
-                                                 ┌───────────┬───────────┐     ┌───────────┬───────────┐
-                                                 │     _     │     _     │     │     _     │     _     │
-                                                 └───────────┴───────────┘     └───────────┴───────────┘
-```
+| Layer 2 | 1   | 2   | 3   | 4   | 5          | 6       |     | 1          | 2          | 3    | 4          | 5        | 6        |
+| ------- | --- | --- | --- | --- | ---------- | ------- | --- | ---------- | ---------- | ---- | ---------- | -------- | -------- |
+| 1       | \_  | F1  | F2  | F3  | F4         | F5      |     | F6         | F7         | F8   | F9         | F10      | F11      |
+| 2       | \_  | \_  | \_  | \_  | Bright     | \_      |     | Wheel up   | Line start | Up   | Line end   | PgUp     | F12      |
+| 3       | \_  | \_  | \_  | \_  | RGB on/off | Effects |     | Wheel down | Left       | Down | Right      | PgDn     | \_       |
+| 4       | \_  | \_  | \_  | \_  | \_         | \_      |     | \_         | Word left  | \_   | Word right | Del line | Del word |
+| T       |     |     |     |     | \_         | \_      |     | \_         | \_         |      |            |          |          |
 
 ## Colours
 
@@ -140,92 +119,94 @@ thumb; everything marked `_` is dark.
 
 Four colours keep one meaning wherever they appear: white is Mac mode or a key
 that changes the board itself, lime is the F keys, green is the two layer
-thumbs, red is the mouse wherever the layer has a mouse key. Every other colour means one thing per
-layer, and two groups that touch never share a colour. The grid for the layer
-you are on is the reference.
+thumbs, red is the mouse wherever the layer has a mouse key. Every other colour
+means one thing per layer, and two groups that touch never share a colour. The
+grid for the layer you are on is the reference.
 
-A pressed key lingers: it dims to half and comes back to full over 0.4 s, so
-the last few keys you typed trail behind you as a dim wake. Linger (layer 2
-`L3-6`) turns this off and on. The board does not remember the choice; after
-every plug-in the effect is on. Keys that are dark on a layer stay dark.
-
-| Colour | Looks like | Base                                                                                                           | Layer 1                                                                                                                                                                                              | Layer 2                                                                                                                                |
-| ------ | ---------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| blue   | `#0021FF`  | every key that only types: letters, digits, `` ` ``, Tab, `-`, `=`, `;`, `,`                                   | —                                                                                                                                                                                                    | —                                                                                                                                      |
-| orange | `#FFA800`  | fixed modifiers: Shift (`L3-1`, `R3-6`), Ctrl (`L4-1`, `R4-6`), Alt (`L4-3`, `R4-4`)                           | `[` `]` (`L3-5`, `L3-6`)                                                                                                                                                                             | words: Word left, Word right, Del word (`R4-2`, `R4-4`, `R4-6`)                                                                        |
-| pink   | `#FF00B4`  | holds that change with the system, while Mac mode is off: Esc (`LT2`), Space (`RT1`), Z (`L4-2`), `/` (`R4-5`) | shortcut keys, which send a shortcut or a sequence rather than a character: Prev tab, Next tab (`L1-1`, `L2-1`), Paste plain (`L4-5`), `\` + Enter (`L4-6`); Mac mode (`R4-6`) while Mac mode is off | pages: PgUp, PgDn (`R2-5`, `R3-5`)                                                                                                     |
-| red    | `#FF0006`  | 5/Click (`L1-6`), the hold is a mouse click                                                                    | `\` `\|` (`L2-3`, `L2-4`)                                                                                                                                                                            | Wheel up, Wheel down (`R2-1`, `R3-1`)                                                                                                  |
-| green  | `#00FF2A`  | layer thumbs Enter (`LT1`) and Bksp (`RT2`)                                                                    | the held Enter                                                                                                                                                                                       | the held Bksp                                                                                                                          |
-| lime   | `#96FF00`  | —                                                                                                              | F1–F12                                                                                                                                                                                               | F1–F12                                                                                                                                 |
-| cyan   | `#00FCFF`  | —                                                                                                              | `<` `>` (`L3-3`, `L3-4`)                                                                                                                                                                             | lines: Line start, Line end, Del line (`R2-2`, `R2-4`, `R4-5`)                                                                         |
-| purple | `#9100FF`  | —                                                                                                              | `{` `}` (`L2-5`, `L2-6`)                                                                                                                                                                             | characters: the arrows (`R2-3`, `R3-2`, `R3-3`, `R3-4`)                                                                                |
-| white  | `#FFFFFF`  | the same four keys while Mac mode is on                                                                        | Mac mode (`R4-6`) while Mac mode is on                                                                                                                                                               | the four lighting keys Bright −, Bright +, RGB on/off, Linger (`L2-5`, `L2-6`, `L3-5`, `L3-6`)                                         |
-
-The keys that depend on the mode show the mode. Esc, Space, Z and `/` hold Ctrl
-or Win on Windows and Cmd on a Mac, so they are pink on Windows and white on a
-Mac, and you can read the mode off the base layer at any time. The Mac mode key
-on layer 1 wears the same pair, pink then white, because it is what flips them.
-The four white keys on layer 2 are the switches that change how the board itself
-lights up. No other key is ever white.
-
-On layer 2 the colour is the unit a key works on: purple moves by a character,
-orange by a word, cyan by a line, pink by a page. The position says whether the
-key moves or deletes.
+Two effects move. A pressed key lingers: it dims by a quarter, holds there, and comes
+back to full in a quick rise at the end of 0.4 s, so the last few keys you
+typed trail behind you as a dim wake. The five mode keys, Esc, Space, Z, `/`
+and Mac mode on layer 1, breathe: they swing slowly between 70 % and full
+brightness, about one breath every 2 s, in pink or white. No other key moves on
+its own. Effects (layer 2 `L3-6`) turns both off and on together. The board
+does not remember the choice; after every plug-in both are on. Keys that are
+dark on a layer stay dark.
 
 ### Base
 
-```
-┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│   blue    │   blue    │   blue    │   blue    │   blue    │    red    │     │   blue    │   blue    │   blue    │   blue    │   blue    │   blue    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│   blue    │   blue    │   blue    │   blue    │   blue    │   blue    │     │   blue    │   blue    │   blue    │   blue    │   blue    │   blue    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│  orange   │   blue    │   blue    │   blue    │   blue    │   blue    │     │   blue    │   blue    │   blue    │   blue    │   blue    │  orange   │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│  orange   │   pink    │  orange   │   blue    │   blue    │   blue    │     │   blue    │   blue    │   blue    │  orange   │   pink    │  orange   │
-└───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
-                                                 ┌───────────┬───────────┐     ┌───────────┬───────────┐
-                                                 │   green   │   pink    │     │   pink    │   green   │
-                                                 └───────────┴───────────┘     └───────────┴───────────┘
-```
+| Colour | Looks like | Means                                                                                                          |
+| ------ | ---------- | -------------------------------------------------------------------------------------------------------------- |
+| blue   | `#0021FF`  | every key that only types: letters, digits, `` ` ``, Tab, `-`, `=`, `;`, `,`                                   |
+| orange | `#FFA800`  | fixed modifiers: Shift (`L3-1`, `R3-6`), Ctrl (`L4-1`, `R4-6`), Alt (`L4-3`, `R4-4`)                           |
+| pink   | `#FF00B4`  | holds that change with the system, while Mac mode is off: Esc (`LT2`), Space (`RT1`), Z (`L4-2`), `/` (`R4-5`) |
+| white  | `#FFFFFF`  | the same four keys while Mac mode is on                                                                        |
+| red    | `#FF0006`  | 5/Click (`L1-6`), the hold is a mouse click                                                                    |
+| green  | `#00FF2A`  | layer thumbs Enter (`LT1`) and Bksp (`RT2`)                                                                    |
 
-The four pink keys turn white while Mac mode is on.
+| Base | 1      | 2    | 3      | 4    | 5     | 6    |     | 1    | 2     | 3    | 4      | 5    | 6      |
+| ---- | ------ | ---- | ------ | ---- | ----- | ---- | --- | ---- | ----- | ---- | ------ | ---- | ------ |
+| 1    | blue   | blue | blue   | blue | blue  | red  |     | blue | blue  | blue | blue   | blue | blue   |
+| 2    | blue   | blue | blue   | blue | blue  | blue |     | blue | blue  | blue | blue   | blue | blue   |
+| 3    | orange | blue | blue   | blue | blue  | blue |     | blue | blue  | blue | blue   | blue | orange |
+| 4    | orange | pink | orange | blue | blue  | blue |     | blue | blue  | blue | orange | pink | orange |
+| T    |        |      |        |      | green | pink |     | pink | green |      |        |      |        |
+
+The four pink keys turn white while Mac mode is on. Esc, Space, Z and `/` hold
+Ctrl or Win on Windows and Cmd on a Mac, so their colour reads the mode off the
+base layer at any time, and their breathing picks them out from the fixed
+modifiers beside them.
 
 ### Layer 1 — hold Enter (`LT1`)
 
-```
-┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│   pink    │   lime    │   lime    │   lime    │   lime    │   lime    │     │   lime    │   lime    │   lime    │   lime    │   lime    │   lime    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│   pink    │           │    red    │    red    │  purple   │  purple   │     │           │           │           │           │           │   lime    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │   cyan    │   cyan    │  orange   │  orange   │     │           │           │           │           │           │           │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │           │           │   pink    │   pink    │     │           │           │           │           │           │   pink    │
-└───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
-                                                 ┌───────────┬───────────┐     ┌───────────┬───────────┐
-                                                 │   green   │           │     │           │           │
-                                                 └───────────┴───────────┘     └───────────┴───────────┘
-```
+| Colour | Looks like | Means                                                                                                                                                                                                |
+| ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| lime   | `#96FF00`  | F1–F12                                                                                                                                                                                               |
+| green  | `#00FF2A`  | the held Enter                                                                                                                                                                                       |
+| red    | `#FF0006`  | `\` `\|` (`L2-3`, `L2-4`)                                                                                                                                                                            |
+| purple | `#9100FF`  | `{` `}` (`L2-5`, `L2-6`)                                                                                                                                                                             |
+| cyan   | `#00FCFF`  | `<` `>` (`L3-3`, `L3-4`)                                                                                                                                                                             |
+| orange | `#FFA800`  | `[` `]` (`L3-5`, `L3-6`)                                                                                                                                                                             |
+| pink   | `#FF00B4`  | shortcut keys, which send a shortcut or a sequence rather than a character: Prev tab, Next tab (`L1-1`, `L2-1`), Paste plain (`L4-5`), `\` + Enter (`L4-6`); Mac mode (`R4-6`) while Mac mode is off |
+| white  | `#FFFFFF`  | Mac mode (`R4-6`) while Mac mode is on                                                                                                                                                               |
 
-`R4-6` shows pink in Windows mode and white in Mac mode, the same as Esc, Space, Z and `/` on base.
+| Layer 1 | 1    | 2    | 3    | 4    | 5      | 6      |     | 1    | 2    | 3    | 4    | 5    | 6    |
+| ------- | ---- | ---- | ---- | ---- | ------ | ------ | --- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 1       | pink | lime | lime | lime | lime   | lime   |     | lime | lime | lime | lime | lime | lime |
+| 2       | pink |      | red  | red  | purple | purple |     |      |      |      |      |      | lime |
+| 3       |      |      | cyan | cyan | orange | orange |     |      |      |      |      |      |      |
+| 4       |      |      |      |      | pink   | pink   |     |      |      |      |      |      | pink |
+| T       |      |      |      |      | green  |        |     |      |      |      |      |      |      |
+
+`R4-6` is pink in Windows mode and white in Mac mode, the same pair as Esc,
+Space, Z and `/` on base, because it is what flips them. It breathes like them.
 
 ### Layer 2 — hold Bksp (`RT2`)
 
-```
-┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐     ┌───────────┬───────────┬───────────┬───────────┬───────────┬───────────┐
-│           │   lime    │   lime    │   lime    │   lime    │   lime    │     │   lime    │   lime    │   lime    │   lime    │   lime    │   lime    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │           │           │   white   │   white   │     │    red    │   cyan    │  purple   │   cyan    │   pink    │   lime    │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │           │           │   white   │   white   │     │    red    │  purple   │  purple   │  purple   │   pink    │           │
-├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤     ├───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
-│           │           │           │           │           │           │     │           │  orange   │           │  orange   │   cyan    │  orange   │
-└───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘     └───────────┴───────────┴───────────┴───────────┴───────────┴───────────┘
-                                                 ┌───────────┬───────────┐     ┌───────────┬───────────┐
-                                                 │           │           │     │           │   green   │
-                                                 └───────────┴───────────┘     └───────────┴───────────┘
-```
+| Colour | Looks like | Means                                                                        |
+| ------ | ---------- | ---------------------------------------------------------------------------- |
+| lime   | `#96FF00`  | F1–F12                                                                       |
+| green  | `#00FF2A`  | the held Bksp                                                                |
+| red    | `#FF0006`  | Wheel up, Wheel down (`R2-1`, `R3-1`)                                        |
+| purple | `#9100FF`  | characters: the arrows (`R2-3`, `R3-2`, `R3-3`, `R3-4`)                      |
+| orange | `#FFA800`  | words: Word left, Word right, Del word (`R4-2`, `R4-4`, `R4-6`)              |
+| cyan   | `#00FCFF`  | lines: Line start, Line end, Del line (`R2-2`, `R2-4`, `R4-5`)               |
+| pink   | `#FF00B4`  | pages: PgUp, PgDn (`R2-5`, `R3-5`)                                           |
+| white  | `#FFFFFF`  | the three lighting keys Bright, RGB on/off, Effects (`L2-5`, `L3-5`, `L3-6`) |
+
+| Layer 2 | 1   | 2    | 3    | 4    | 5     | 6     |     | 1    | 2      | 3      | 4      | 5    | 6      |
+| ------- | --- | ---- | ---- | ---- | ----- | ----- | --- | ---- | ------ | ------ | ------ | ---- | ------ |
+| 1       |     | lime | lime | lime | lime  | lime  |     | lime | lime   | lime   | lime   | lime | lime   |
+| 2       |     |      |      |      | white |       |     | red  | cyan   | purple | cyan   | pink | lime   |
+| 3       |     |      |      |      | white | white |     | red  | purple | purple | purple | pink |        |
+| 4       |     |      |      |      |       |       |     |      | orange |        | orange | cyan | orange |
+| T       |     |      |      |      |       |       |     |      | green  |        |        |      |        |
+
+The colour is the unit a key works on: purple moves by a character, orange by a
+word, cyan by a line, pink by a page. The position says whether the key moves
+or deletes. The three white keys are the switches that change how the board
+itself lights up. Bright cycles in quarters: 0, 25, 50, 75, 100 % of the
+board's maximum, then back to 0; the board remembers the setting. No other key
+is ever white.
 
 ## App shortcuts, left hand
 
@@ -346,12 +327,12 @@ way a regular keyboard does it: Shift on `L3-1` adds to Ctrl+Tab by itself.
 
 The keyboard decides at plug-in. While Mac mode is on, the four keys that change
 with it, Esc (`LT2`), Space (`RT1`), Z (`L4-2`) and `/` (`R4-5`), glow white
-instead of pink.
+instead of pink. They breathe in both modes.
 
 To change it by hand: Enter + Del (`LT1` + `R4-6`), left outer thumb plus right
 outer pinky. While Enter is held that key shows the mode in the same colours,
-pink for Windows and white for Mac. Press it to change; press again to change back. The choice is not remembered; unplugging and
-plugging in decides again.
+pink for Windows and white for Mac. Press it to change; press again to change
+back. The choice is not remembered; unplugging and plugging in decides again.
 
 ## What needs both hands
 

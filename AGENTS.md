@@ -2,7 +2,7 @@
 
 Firmware source for a ZSA Voyager keyboard, one layout serving both Windows and macOS. It started as an Oryx export and has since been hand-edited well past anything Oryx can represent.
 
-Read `LAYOUT.md` for what the keys do and `FIRMWARE.md` for how it works.
+Read `LAYOUT.md` for what the keys do, `FIRMWARE.md` for how it works and `BUILD.md` to compile and flash.
 
 ## The tree
 
@@ -15,6 +15,8 @@ zsa_voyager_domas_source/
   keymap.c.orig   the Oryx original, kept for reference
 LAYOUT.md         key reference for a person
 FIRMWARE.md       how and why, for whoever changes it
+BUILD.md          how to compile, flash and go back
+build.sh          compiles; inside WSL also copies the .bin to the Windows folder for flashing
 zsa_voyager_xB6Jx.bin   an older build, kept as something to go back to
 ```
 
@@ -22,7 +24,7 @@ zsa_voyager_xB6Jx.bin   an older build, kept as something to go back to
 
 **A fresh Oryx download destroys this work.** Downloading the layout again from configure.zsa.io overwrites `keymap.c`, `config.h` and `rules.mk` with generated code, losing OS detection, the tap-hold tuning and every custom keycode. Never regenerate from Oryx without saying so first and getting an answer.
 
-**`keymap.c`, `LAYOUT.md` and `FIRMWARE.md` change together.** A key that moves in one moves in all three. A reader who trusts a stale `LAYOUT.md` will mistype for a week before working out why. Colour is part of this: a key that changes what it does also changes its colour in `glowmap`, in the colour grids of `LAYOUT.md` **Colours** and in that section's meaning table, checked against its neighbours by the rules in `FIRMWARE.md` **Lighting**.
+**`keymap.c`, `LAYOUT.md` and `FIRMWARE.md` change together.** A key that moves in one moves in all three. A reader who trusts a stale `LAYOUT.md` will mistype for a week before working out why. Colour is part of this: a key that changes what it does also changes its colour in `glowmap`, in the colour grids of `LAYOUT.md` **Colours** and in that section's per-layer meaning tables, checked against its neighbours by the rules in `FIRMWARE.md` **Lighting**.
 
 **`keymap.json` is not the layout and must stay.** It holds nothing but ZSA's module list (`zsa/oryx`, `zsa/navigator_trackpad`, `zsa/defaults`). Those modules supply `ZSA_SAFE_RANGE` and `rawhid_state`, which `keymap.c` uses, so deleting the file breaks the build. QMK reads it and then pulls in `keymap.c` as well; both are used together (`builddefs/build_keyboard.mk`, the `keymap.json` block).
 
@@ -32,7 +34,7 @@ zsa_voyager_xB6Jx.bin   an older build, kept as something to go back to
 
 ## Position codes
 
-Every grid in both documents is in position codes, and `FIRMWARE.md` uses nothing else. The shortcut tables in `LAYOUT.md` are the exception: they lead with what is printed on the key, because that is what you look at while finding a combo, and keep the position code in a column beside it. A position code survives a base layer change; a printed legend does not, so anything that moves a key has to correct the legends in those tables as well.
+Every grid in both documents is in position codes, and `FIRMWARE.md` uses nothing else. A grid is a markdown table: row label (`1`–`4`, `T` for thumbs) plus column header (`1`–`6`) is the code, left half `L`, right half `R`. The shortcut tables in `LAYOUT.md` are the exception: they lead with what is printed on the key, because that is what you look at while finding a combo, and keep the position code in a column beside it. A position code survives a base layer change; a printed legend does not, so anything that moves a key has to correct the legends in those tables as well.
 
 Hand, then row 1 at the top to row 4 at the bottom, then column 1 to 6 left to right as you look at the board. `L4-1` is the bottom-left corner. `R2-5` is the right hand, second row, fifth column. Thumbs are `LT1` and `LT2` on the left, `RT1` and `RT2` on the right, numbered outward to inward on the left and inward to outward on the right, so the inner pair is `LT2` and `RT1`.
 
@@ -50,16 +52,16 @@ The Oryx original is machine-written. Do not copy its style.
 
 ## Verifying a change
 
-The layout can be compiled here. ZSA's fork belongs at `../qmk_firmware` on branch `firmware25`, with this directory linked in at `keyboards/zsa/voyager/keymaps/domas` so QMK sees these files without a second copy. `FIRMWARE.md` has the download, the link and the compiler in full under **Build**, and the flasher, how to enter flash mode and how to go back under **Flash**.
+The layout can be compiled here. ZSA's fork belongs at `../qmk_firmware` on branch `firmware25`, with this directory linked in at `keyboards/zsa/voyager/keymaps/domas` so QMK sees these files without a second copy. `BUILD.md` has the download, the link and the compiler in full under **Build**, and the flasher, how to enter flash mode and how to go back under **Flash**.
 
 ```
-~/.venvs/qmk/bin/qmk compile -kb zsa/voyager -km domas
+./build.sh
 ```
 
-If that copy of QMK is not present, say plainly that the change was not compiled. Do not describe a change that was not compiled in words that imply a build passed.
+It runs `qmk compile` and, inside WSL, copies the `.bin` where the flasher can open it. If that copy of QMK is not present, say plainly that the change was not compiled. Do not describe a change that was not compiled in words that imply a build passed.
 
 Errors in `keymap.c` are reported against `quantum/keymap_introspection.c`, which pulls it in. Nothing here appears under its own filename.
 
-Flashing needs a Windows path. Zapp is a Windows program and cannot open `/home/...`, so the built `.bin` has to be copied under `/mnt/c/` first. `FIRMWARE.md` gives the two commands.
+Flashing needs a Windows path. Zapp is a Windows program and cannot open `/home/...`, so the built `.bin` has to be copied under `/mnt/c/` first. `build.sh` does that copy when it runs inside WSL; `BUILD.md` gives the commands by hand.
 
 A compile is not a test. Tap-hold timing, OS detection and the app switcher can only be judged by typing on the board. `FIRMWARE.md` ends with the by-hand checks worth running after a flash.
