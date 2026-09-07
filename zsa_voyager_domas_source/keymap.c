@@ -23,7 +23,7 @@ enum custom_keycodes {
 
 #define APP_CMD_L  LT(0, KC_ESCAPE)
 #define APP_CMD_R  LT(0, KC_SPACE)
-#define NUM5_CLICK LT(1, KC_F17)
+#define NUM5_CLICK LT(0, KC_5)
 #define NEXT_TAB   LCTL(KC_TAB)
 #define PREV_TAB   LCTL(LSFT(KC_TAB))
 
@@ -59,16 +59,26 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT_voyage
                         '*', '*',      '*', '*'
 );
 
-static bool     mac_mode;
-static bool     effects_on = true;
-static uint16_t left_app_command_held;
-static uint16_t right_app_command_held;
-static bool     app_switch_alt_held;
+static bool mac_mode;
+static bool effects_on = true;
+static bool app_switch_alt_held;
 
-static void release_app_command(uint16_t *held) {
-    if (*held) {
-        unregister_code(*held);
-        *held = 0;
+// A thumb that taps one key and holds a modifier that depends on the mode.
+typedef struct {
+    uint16_t tap_keycode;
+    uint8_t  windows_mod;
+    uint8_t  mac_mod;
+    uint8_t  held;   // the modifier now down, 0 if none
+    bool     alone;  // nothing else has been pressed since it went down
+} app_command_t;
+
+static app_command_t left_app_command  = { .tap_keycode = KC_ESCAPE, .windows_mod = KC_LEFT_CTRL, .mac_mod = KC_LEFT_GUI };
+static app_command_t right_app_command = { .tap_keycode = KC_SPACE, .windows_mod = KC_RIGHT_CTRL, .mac_mod = KC_RIGHT_GUI };
+
+static void release_app_command(app_command_t *command) {
+    if (command->held) {
+        unregister_code(command->held);
+        command->held = 0;
     }
 }
 
@@ -84,8 +94,8 @@ static void set_mac_mode(bool on) {
         return;
     }
     end_app_switch();
-    release_app_command(&left_app_command_held);
-    release_app_command(&right_app_command_held);
+    release_app_command(&left_app_command);
+    release_app_command(&right_app_command);
     mac_mode = on;
 }
 
@@ -149,9 +159,6 @@ bool is_flow_tap_key(uint16_t keycode) {
     if ((get_mods() & (MOD_MASK_CG | MOD_BIT_LALT)) != 0) {
         return false;
     }
-    if (keycode == NUM5_CLICK) {
-        return true;
-    }
     switch (get_tap_keycode(keycode)) {
         case KC_SPACE:
         case KC_A ... KC_Z:
@@ -195,6 +202,10 @@ static uint16_t os_keycode_for(int8_t index) {
     return mac_mode ? os_keycodes[index].mac : os_keycodes[index].windows;
 }
 
+static uint16_t os_shortcut(uint16_t keycode) {
+    return os_keycode_for(os_keycode_index(keycode));
+}
+
 static bool process_os_keycode(int8_t index, keyrecord_t *record) {
     if (record->event.pressed) {
         os_keycode_sent[index] = os_keycode_for(index);
@@ -206,20 +217,27 @@ static bool process_os_keycode(int8_t index, keyrecord_t *record) {
     return false;
 }
 
-static bool process_app_command(uint16_t *held, uint16_t tap_keycode, uint16_t windows_mod, uint16_t mac_mod, keyrecord_t *record) {
+static bool process_app_command(app_command_t *command, keyrecord_t *record) {
     if (record->tap.count) {
         if (record->event.pressed) {
-            register_code16(tap_keycode);
+            register_code16(command->tap_keycode);
         } else {
-            unregister_code16(tap_keycode);
+            unregister_code16(command->tap_keycode);
         }
         return false;
     }
     if (record->event.pressed) {
-        *held = mac_mode ? mac_mod : windows_mod;
-        register_code(*held);
+        command->alone = true;
+        command->held  = mac_mode ? command->mac_mod : command->windows_mod;
+        register_code(command->held);
     } else {
-        release_app_command(held);
+        release_app_command(command);
+        // A hold that nothing interrupted was a slow tap. QMK's own retro tapping
+        // cannot reach this key: it sits at the end of process_action, and
+        // returning false from here means process_action never runs.
+        if (command->alone) {
+            tap_code16(command->tap_keycode);
+        }
     }
     return false;
 }
@@ -249,6 +267,13 @@ static void cycle_brightness(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (keycode != APP_CMD_L) {
+        left_app_command.alone = false;
+    }
+    if (keycode != APP_CMD_R) {
+        right_app_command.alone = false;
+    }
+
     int8_t os_index = os_keycode_index(keycode);
     if (os_index >= 0) {
         return process_os_keycode(os_index, record);
@@ -256,8 +281,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
     switch (keycode) {
         case QK_MODS ... QK_MODS_MAX:
-            // Mouse and consumer keys (volume, media) with modifiers work inconsistently across operating systems,
-            // this makes sure that modifiers are always applied to the key that was pressed.
+            // Mouse keys with modifiers work inconsistently across operating systems; this
+            // makes sure the modifiers are applied to the mouse key that was pressed. No key
+            // in the keymap is one today, so this is a guard for whoever adds one.
             if (IS_MOUSE_KEYCODE(QK_MODS_GET_BASIC_KEYCODE(keycode))) {
                 if (record->event.pressed) {
                     add_mods(QK_MODS_GET_MODS(keycode));
@@ -276,17 +302,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (!record->event.pressed) {
                 end_app_switch();
             }
-            return process_app_command(&left_app_command_held, KC_ESCAPE, KC_LEFT_CTRL, KC_LEFT_GUI, record);
+            return process_app_command(&left_app_command, record);
 
         case APP_CMD_R:
-            return process_app_command(&right_app_command_held, KC_SPACE, KC_RIGHT_CTRL, KC_RIGHT_GUI, record);
+            return process_app_command(&right_app_command, record);
 
         case SWITCH_TAB:
             if (record->event.pressed) {
                 // Windows switches apps on Alt+Tab, so the thumb's Ctrl is traded for Alt and kept
                 // down until the thumb lifts. That is what lets repeated taps cycle the window list.
-                if (!mac_mode && left_app_command_held && !app_switch_alt_held) {
-                    release_app_command(&left_app_command_held);
+                if (!mac_mode && left_app_command.held && !app_switch_alt_held) {
+                    release_app_command(&left_app_command);
                     register_code(KC_LEFT_ALT);
                     app_switch_alt_held = true;
                 }
@@ -312,7 +338,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 // Windows has no delete-to-line-start keystroke, so both systems select
                 // to the line start and delete the selection.
-                tap_code16(LSFT(os_keycode_for(os_keycode_index(LINE_START))));
+                tap_code16(LSFT(os_shortcut(LINE_START)));
                 tap_code(KC_BSPC);
             }
             return false;
@@ -348,11 +374,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return true;
 }
 
-extern rgb_config_t rgb_matrix_config;
-
-RGB hsv_to_rgb_with_value(HSV hsv) {
+// Scales after the conversion, not before. hsv_to_rgb runs the value through
+// the CIE 1931 curve, so scaling the value first would dim the board at full
+// and change every stage of the brightness ladder.
+static RGB rgb_at_brightness(HSV hsv) {
     RGB   rgb = hsv_to_rgb(hsv);
-    float f   = (float)rgb_matrix_config.hsv.v / UINT8_MAX;
+    float f   = (float)rgb_matrix_get_val() / UINT8_MAX;
     return (RGB){ f * rgb.r, f * rgb.g, f * rgb.b };
 }
 
@@ -433,7 +460,7 @@ static uint8_t eased(uint16_t age) {
     if (index >= 16) {
         return 255;
     }
-    return ease_in_expo[index] + (uint16_t)(ease_in_expo[index + 1] - ease_in_expo[index]) * frac / 255;
+    return lerp8by8(ease_in_expo[index], ease_in_expo[index + 1], frac);
 }
 
 static HSV linger(uint8_t led, HSV hsv) {
@@ -445,6 +472,9 @@ static HSV linger(uint8_t led, HSV hsv) {
         if (g_last_hit_tracker.index[i] == led && g_last_hit_tracker.tick[i] < age) {
             age = g_last_hit_tracker.tick[i];
         }
+    }
+    if (age >= linger_ms) {
+        return hsv;
     }
     uint8_t dip = hsv.v / 4;
     hsv.v       = hsv.v - dip + (uint16_t)dip * eased(age) / 255;
@@ -462,24 +492,8 @@ static HSV pulse(HSV hsv) {
 }
 
 static void set_led_hsv(uint8_t led, HSV hsv) {
-    RGB rgb = hsv_to_rgb_with_value(linger(led, hsv));
+    RGB rgb = rgb_at_brightness(linger(led, hsv));
     rgb_matrix_set_color(led, rgb.r, rgb.g, rgb.b);
-}
-
-static void set_led_glow(uint8_t led, enum glow glow) {
-    set_led_hsv(led, glow_palette[glow]);
-}
-
-static void set_layer_color(uint8_t layer) {
-    for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
-        for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-            uint8_t led = g_led_config.matrix_co[row][col];
-            if (led == NO_LED) {
-                continue;
-            }
-            set_led_glow(led, pgm_read_byte(&glowmap[layer][row][col]));
-        }
-    }
 }
 
 // The keys that send something different in Mac mode, plus the key that flips it.
@@ -497,21 +511,26 @@ static bool is_mode_key(uint16_t keycode) {
     return false;
 }
 
-// Found by keycode, not by position, so moving a key in the keymap moves its
-// light with it. Transparent cells on a layer are not mode keys and stay dark.
-static void set_mode_keys_glow(uint8_t layer) {
+// Mode keys are found by keycode, not by position, so moving one in the keymap
+// moves its light with it. A transparent cell is never a mode key and keeps its
+// glowmap colour.
+static void paint_layer(uint8_t layer) {
     for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
         for (uint8_t col = 0; col < MATRIX_COLS; col++) {
-            keypos_t key = { .row = row, .col = col };
-            if (!is_mode_key(keymap_key_to_keycode(layer, key))) {
-                continue;
-            }
             uint8_t led = g_led_config.matrix_co[row][col];
             if (led == NO_LED) {
                 continue;
             }
-            enum glow glow = mac_mode ? GLOW_WHITE : pgm_read_byte(&glowmap[layer][row][col]);
-            set_led_hsv(led, pulse(glow_palette[glow]));
+            enum glow glow = pgm_read_byte(&glowmap[layer][row][col]);
+            keypos_t  key  = { .row = row, .col = col };
+            if (is_mode_key(keymap_key_to_keycode(layer, key))) {
+                if (mac_mode) {
+                    glow = GLOW_WHITE;
+                }
+                set_led_hsv(led, pulse(glow_palette[glow]));
+            } else {
+                set_led_hsv(led, glow_palette[glow]);
+            }
         }
     }
 }
@@ -523,12 +542,8 @@ bool rgb_matrix_indicators_user(void) {
 
     uint8_t layer = get_highest_layer(layer_state);
     if (layer < ARRAY_SIZE(glowmap)) {
-        set_layer_color(layer);
-    } else if (rgb_matrix_get_flags() == LED_FLAG_NONE) {
-        rgb_matrix_set_color_all(0, 0, 0);
+        paint_layer(layer);
     }
-
-    set_mode_keys_glow(layer);
 
     return true;
 }

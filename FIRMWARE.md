@@ -18,7 +18,7 @@ Three things set it.
 
 It is never written to permanent storage. Every plug-in decides again from scratch. That is deliberate: a stale saved value is worse than a fresh guess, because you cannot see it.
 
-You can see the current value on the keys it changes. The four mode-dependent holds, `LT2`, `RT1`, `L4-2` and `R4-5`, are pink in Windows mode and white in Mac mode, and the Mac mode key on layer 1 `R4-6` wears the same pair while that layer is held. All five breathe in both modes. `mode_keys` lists the five keycodes; `set_mode_keys_glow` scans the held layer for them and paints each one, white when Mac mode is on and otherwise the colour `glowmap` gives it, through the pulse described under **Effects**. They are found by keycode, not position, so moving one in the keymap moves its light with it, and a transparent cell on a layer is never painted.
+You can see the current value on the keys it changes. The four mode-dependent holds, `LT2`, `RT1`, `L4-2` and `R4-5`, are pink in Windows mode and white in Mac mode, and the Mac mode key on layer 1 `R4-6` wears the same pair while that layer is held. All five breathe in both modes. `mode_keys` lists the five keycodes; `paint_layer` checks every key of the held layer against it and paints a match white when Mac mode is on and otherwise the colour `glowmap` gives it, through the pulse described under **Effects**. They are found by keycode, not position, so moving one in the keymap moves its light with it, and a transparent cell on a layer is never a mode key.
 
 Changing mode releases whatever the two thumbs are holding and cancels an app switch in progress. Without that, flipping mode mid-chord would leave a modifier stuck down.
 
@@ -61,7 +61,9 @@ The rest:
 | `EFFECTS_TOGGLE`      | layer 2 `L3-6`         | Turns linger and the mode-key pulse off and on together. Not saved; on at power-up. See **Effects**. |
 | `BRIGHT_CYCLE`        | layer 2 `L2-5`         | Brightness one stage up, wrapping: 0, 25, 50, 75, 100 % of the board's maximum, then 0. Saved. See **Lighting**. |
 
-`APP_CMD_L` and `APP_CMD_R` are written as `LT(0, ...)`. Layer 0 is the base layer, so the hold does nothing by itself and `process_record_user` supplies the modifier, reading `record->tap.count` to tell a tap from a hold. Which modifier it registered is stored, and release lets go of that stored one rather than recomputing it, so a mode change between press and release cannot strand a key down.
+`APP_CMD_L`, `APP_CMD_R` and `NUM5_CLICK` are written as `LT(0, ...)`. Layer 0 is the base layer, so the hold does nothing by itself and `process_record_user` supplies it, reading `record->tap.count` to tell a tap from a hold. For the two thumbs, which modifier it registered is stored, and release lets go of that stored one rather than recomputing it, so a mode change between press and release cannot strand a key down.
+
+A hold on either thumb that no other key interrupted sends the tap on release, so a slow Escape or a slow Space still types. `process_record_user` does that itself, because QMK's retro tapping never reaches these keys: it runs at the end of `process_action`, and returning false from `process_record_user`, which these keys do, skips `process_action` altogether. Every other key event clears the "nothing else pressed" flag, so a thumb held for a shortcut sends no Escape afterwards.
 
 `BACKSLASH_ENTER` replaces two identical Oryx macros, `ST_MACRO_0` and `ST_MACRO_1`, which sent the same thing.
 
@@ -112,6 +114,8 @@ L * * L L L      R R R * * *
 
 One table, `tap_holds`, feeds three callbacks. Anything not listed takes the defaults: term 150, hold-on-other-press off, retro tap on.
 
+QMK's retro tap reaches only the keys QMK handles itself. So the default `on` applies to `LT1` and `RT2`: hold either alone and release, and it types Enter or Backspace. `LT2`, `RT1` and `L1-6` are handled by `process_record_user`, which returns false before QMK's retro tap can run. The two thumbs get the same behaviour by hand, see **Custom keycodes**; `L1-6` gets none, which is what its row asks for. Term and hold-on-other-press are decided before `process_record_user` runs, so those two columns apply to all three.
+
 | Position | Keycode             | Term | Hold on other press | Retro tap |
 | -------- | ------------------- | ---- | ------------------- | --------- |
 | `L4-2`   | `LGUI_T(KC_Z)`      | 200  | no                  | no        |
@@ -134,13 +138,13 @@ One table, `tap_holds`, feeds three callbacks. Anything not listed takes the def
 
 ### Flow Tap coverage
 
-`is_flow_tap_key` takes QMK's stock set — letters, comma, period, semicolon, slash, space — and adds the number row and `NUM5_CLICK`, so rolling digits cannot fire a mouse click. It keeps the stock guard that switches Flow Tap off once Ctrl, Cmd or Alt is already held, which is what lets you chain a second key into a shortcut.
+`is_flow_tap_key` takes QMK's stock set — letters, comma, period, semicolon, slash, space — and adds the number row, which covers `NUM5_CLICK` because its tap is `5`, so rolling digits cannot fire a mouse click. It keeps the stock guard that switches Flow Tap off once Ctrl, Cmd or left Alt is already held, which is what lets you chain a second key into a shortcut. Right Alt is left out on purpose, by QMK: on many layouts it is AltGr, a typing key.
 
 Which keys this protects follows from their tap: `L4-2`, `R4-5`, `L4-3`, `R4-4`, `RT1` and `L1-6` are covered. `LT2`, `LT1`, `RT2`, `R3-6` and `R4-6` are not, because Escape, Enter, Backspace, apostrophe and Delete are not typing keys.
 
 ## Lighting
 
-Every key has a colour per layer. `glowmap` holds them as a `LAYOUT_voyager` grid of colour numbers, one grid per layer, in the same shape as `keymaps`. `glow_palette` turns a number into HSV, and `set_layer_color` walks the matrix, finds each key's LED through `g_led_config.matrix_co` and paints it. `GLOW_OFF` is 0 because the macro fills the unused matrix cells with `KC_NO`, which is also 0.
+Every key has a colour per layer. `glowmap` holds them as a `LAYOUT_voyager` grid of colour numbers, one grid per layer, in the same shape as `keymaps`. `glow_palette` turns a number into HSV, and `paint_layer` walks the matrix, finds each key's LED through `g_led_config.matrix_co` and paints it, checking each key against `mode_keys` on the way, see **Mac mode**. `GLOW_OFF` is 0 because the macro fills the unused matrix cells with `KC_NO`, which is also 0.
 
 The Oryx export kept colours as a flat list in LED order, which is not key order. The grid replaces it so that a colour sits where its key sits, and a layout change cannot point a colour at the wrong key.
 
@@ -157,7 +161,11 @@ The Oryx export kept colours as a flat list in LED order, which is not key order
 - **Touching groups differ.** Two keys next to each other that do different kinds of thing get different colours. Beyond that, hues that are neighbours on the wheel (42° apart) stay off touching keys wherever there is a choice. The one exception is PgDn (pink, `R3-5`) beside Right (purple, `R3-4`).
 - **Anything else may be reused.** Orange is fixed modifiers on base, `[ ]` on layer 1, words on layer 2. That is fine because they never appear together. The meaning table in `LAYOUT.md` is per layer for this reason.
 
-Eight hues, each at least 42° from every other on the hue wheel, so any two can sit side by side without a further rule. In QMK's 0–255 hue scale: red 254, orange 28, lime 60, green 92, cyan 128, blue 164, purple 194, pink 224. The smallest gap is 30 units, which is 42°. Saturation and value are always 255. `hsv_to_rgb_with_value` scales every key by the global brightness, which `L2-5` on layer 2 sets and the board remembers. `cycle_brightness` keeps that value on a ladder of five stages, `brightness_stages`, at quarters of `RGB_MATRIX_MAXIMUM_BRIGHTNESS` (175 on the Voyager, set by ZSA in `keyboard.json`): it snaps the current value to the nearest stage and moves one up, wrapping from full to dark, so a value left by an older build lands on the ladder after one press and one key covers the whole range. QMK's own `RGB_VAD`/`RGB_VAI` step by 16 of 255 and need two keys and eleven presses for the same range. The scaling matters because so a per-key shade would fight the brightness setting and fade first when it is low. Both effects below dim by a fraction of the key's own value for the same reason.
+Eight hues, each at least 42° from every other on the hue wheel, so any two can sit side by side without a further rule. In QMK's 0–255 hue scale: red 254, orange 28, lime 60, green 92, cyan 128, blue 164, purple 194, pink 224. The smallest gap is 30 units, which is 42°. Saturation and value are always 255. `rgb_at_brightness` scales every key by the global brightness, which `L2-5` on layer 2 sets and the board remembers. `cycle_brightness` keeps that value on a ladder of five stages, `brightness_stages`, at quarters of `RGB_MATRIX_MAXIMUM_BRIGHTNESS` (175 on the Voyager, set by ZSA in `keyboard.json`): it snaps the current value to the nearest stage and moves one up, wrapping from full to dark, so a value left by an older build lands on the ladder after one press and one key covers the whole range. QMK's own `RGB_VAD`/`RGB_VAI` step by 16 of 255 and need two keys and eleven presses for the same range. The scaling matters because a per-key shade would otherwise fight the brightness setting and fade first when it is low. Both effects below dim by a fraction of the key's own value for the same reason.
+
+`rgb_at_brightness` scales the RGB result after `hsv_to_rgb`, not the value before it. QMK converts through the CIE 1931 curve, so a value of half gives far less than half the light. Moving the multiply in front of the conversion would look like a tidy-up and would dim the board at full brightness and unevenly along the ladder.
+
+`keyboard_post_init_user` turns the lighting on at every plug-in, so `RGB_TOG` on layer 2 `L3-5` lasts for the session only and the board always lights up when connected.
 
 White means Mac mode on the five mode keys, and on layer 2 marks the three lighting keys `L2-5`, `L3-5`, `L3-6`, which change the board itself. No other key is white, so a white key on base always means Mac mode is on.
 
@@ -165,11 +173,11 @@ White means Mac mode on the five mode keys, and on layer 2 marks the three light
 
 Two effects, one switch. `EFFECTS_TOGGLE` on layer 2 `L3-6` flips `effects_on`, which both read. It is a plain variable, not saved to the board's settings memory, so both are on after every plug-in. That was a choice, made to keep the code small.
 
-**Linger.** A pressed key dims to three quarters of its brightness, holds there, and comes back to full at the end of 400 ms. `linger` does it: for the LED being painted it looks up the newest press in `g_last_hit_tracker`, QMK's list of recent presses with their age in ms, and adds back the missing quarter scaled by an easeInExpo curve of the age, `f(p) = 2^(10(p-1))` with `f(0) = 0`. The curve stays near zero for most of the 400 ms and climbs steeply at the end, which is what makes the dim key hold and then snap back; a linear ramp needed a pause before the fade to read the same way, and the curve makes that pause unnecessary. `ease_in_expo` holds the curve at 17 points, `eased` interpolates between them; a float exponent for every LED on every frame is not worth it. `set_led_hsv` runs every colour through `linger`, so it applies to the grid and to the mode keys alike.
+**Linger.** A pressed key dims to three quarters of its brightness, holds there, and comes back to full at the end of 400 ms. `linger` does it: for the LED being painted it looks up the newest press in `g_last_hit_tracker`, QMK's list of recent presses with their age in ms, and adds back the missing quarter scaled by an easeInExpo curve of the age, `f(p) = 2^(10(p-1))` with `f(0) = 0`. The curve stays near zero for most of the 400 ms and climbs steeply at the end, which is what makes the dim key hold and then snap back; a linear ramp needed a pause before the fade to read the same way, and the curve makes that pause unnecessary. `ease_in_expo` holds the curve at 17 points, `eased` interpolates between them with lib8tion's `lerp8by8`; a float exponent for every LED on every frame is not worth it. A key with no press in the last 400 ms skips the curve and keeps its colour as it came. `set_led_hsv` runs every colour through `linger`, so it applies to the grid and to the mode keys alike.
 
-The dip is a fraction of the key's own value, not a fixed amount, so it survives `hsv_to_rgb_with_value` scaling every key by the global brightness set with `L2-5`: at any brightness a fresh press is a quarter dimmer than its neighbours and the return looks the same. Dark keys (value 0) come out of the same formula unchanged, so they need no special case. An earlier version lowered saturation towards white instead; that was dropped because the layers already have dark keys, and a pale key read as a third state.
+The dip is a fraction of the key's own value, not a fixed amount, so it survives `rgb_at_brightness` scaling every key by the global brightness set with `L2-5`: at any brightness a fresh press is a quarter dimmer than its neighbours and the return looks the same. Dark keys (value 0) come out of the same formula unchanged, so they need no special case. An earlier version lowered saturation towards white instead; that was dropped because the layers already have dark keys, and a pale key read as a third state.
 
-**Pulse.** The five mode keys breathe between 70 % and full brightness, all in step. `pulse` takes `g_rgb_timer`, QMK's frame clock in ms, divides it by 8 and feeds it to `sin8`, so one breath is 2048 ms. Only `set_mode_keys_glow` calls it, after picking white or the glowmap colour and before `linger`, so a pressed mode key dips from wherever its breath is. `sin8` comes from `lib/lib8tion/lib8tion.h`, which `QMK_KEYBOARD_H` does not pull in, hence the include at the top of `keymap.c`.
+**Pulse.** The five mode keys breathe between 70 % and full brightness, all in step. `pulse` takes `g_rgb_timer`, QMK's frame clock in ms, divides it by 8 and feeds it to `sin8`, so one breath is 2048 ms. Only `paint_layer` calls it, for the mode keys, after picking white or the glowmap colour and before `linger`, so a pressed mode key dips from wherever its breath is. `sin8` comes from `lib/lib8tion/lib8tion.h`, which `QMK_KEYBOARD_H` does not pull in, hence the include at the top of `keymap.c`.
 
 `rgb_matrix_indicators_user` runs once per frame, every 26 ms (`led_flush_limit` in the board's `keyboard.json`), so the 400 ms linger has about fifteen steps and a breath about eighty.
 
@@ -225,8 +233,8 @@ A compile proves the code builds. Only typing proves it works.
 **Colours**
 
 22. Base layer: blue everywhere except orange on `L3-1`, `R3-6`, `L4-1`, `R4-6`, `L4-3`, `R4-4`; pink on `L4-2`, `R4-5`, `LT2`, `RT1`; green on `LT1`, `RT2`; red on `L1-6`.
-23. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: lime top row, four symbol pairs in four colours, nothing blue, nothing lit on the right hand except F6–F12 and `R4-6`, everything marked `_` dark. `LT1` + `R2-1` types `y` and does not scroll.
-24. Hold `RT2`. Same for the layer 2 grid: three white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance.
+23. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: lime top row, four symbol pairs in four colours, nothing blue, nothing lit on the right hand except F6–F12 and `R4-6`, everything marked `_` dark. `LT1` + `R2-1` types `y` and does not scroll. Releasing `LT1` on its own types an Enter; that is retro tap, and expected.
+24. Hold `RT2`. Same for the layer 2 grid: three white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance. Releasing `RT2` on its own types a Backspace, expected for the same reason.
 25. In Mac mode `LT2`, `RT1`, `L4-2` and `R4-5` are white on the base layer, `R4-6` is white on layer 1, and nothing else changes.
 26. Judge orange against lime, and lime against green, by eye. If two read alike, move a hue in `glow_palette` and keep every gap at 30 units or more.
 
