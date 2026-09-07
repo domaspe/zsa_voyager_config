@@ -17,7 +17,7 @@ LAYOUT.md         key reference for a person
 FIRMWARE.md       how and why, for whoever changes it
 BUILD.md          how to compile, flash and go back
 build.sh          compiles; inside WSL also copies the .bin to the Windows folder for flashing
-zsa_voyager_xB6Jx.bin   an older build, kept as something to go back to
+zsa_voyager_E5AmY.bin   ZSA's stock default layout, compiled by Oryx, kept as something to go back to
 ```
 
 ## Hard rules

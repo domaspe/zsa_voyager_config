@@ -100,20 +100,20 @@ This layout has no key that enters flash mode. `QK_BOOT` appears nowhere in `key
 
 A bad flash is recoverable. The chip holds two separate programs: the one that receives new firmware, which ZSA calls Ignition, and the keymap firmware. Flashing replaces the second and never the first, so firmware that crashes on startup cannot stop you writing over it. Zapp names both states in its device list, `Voyager (Ignition STM32)` and `Keyboard in Reset Mode (STM32 DFU)`.
 
-`zsa_voyager_xB6Jx.bin` in this repo is the build that came before this rewrite, kept for exactly this. `zsa_voyager_xB6Jx.bin.md5` holds its checksum. That file is the bare value with no filename, so `md5sum -c` cannot read it; compare the two by hand:
+`zsa_voyager_E5AmY.bin` in this repo is ZSA's stock default layout for the Voyager, compiled by Oryx (configure.zsa.io/voyager/layouts/E5AmY/B495Jd), kept for exactly this. It types the stock layout, not this one, so it is for a board that will not run the current build, not for daily use. `zsa_voyager_E5AmY.bin.md5` holds its checksum. That file is the bare value with no filename, so `md5sum -c` cannot read it; compare the two by hand:
 
 ```
-md5sum zsa_voyager_xB6Jx.bin
-cat zsa_voyager_xB6Jx.bin.md5
+md5sum zsa_voyager_E5AmY.bin
+cat zsa_voyager_E5AmY.bin.md5
 ```
 
-Both must read `306743d7d1156ef2fc826474ddcb92eb`.
+Both must read `59848dce2b0980a6859d0b4bbacfb2b0`.
 
 To go back, copy it to the Windows folder and flash that instead:
 
 ```
-cp zsa_voyager_xB6Jx.bin '/mnt/c/Users/DomasPetkevičius/Documents/Projects/zsa_voyager_xB6Jx_RESTORE.bin'
-cd '/mnt/c/Users/DomasPetkevičius/Documents/Projects' && ./zapp.exe flash zsa_voyager_xB6Jx_RESTORE.bin
+cp zsa_voyager_E5AmY.bin '/mnt/c/Users/DomasPetkevičius/Documents/Projects/zsa_voyager_E5AmY_RESTORE.bin'
+cd '/mnt/c/Users/DomasPetkevičius/Documents/Projects' && ./zapp.exe flash zsa_voyager_E5AmY_RESTORE.bin
 ```
 
-Keep that file until a new build has been flashed and checked.
+Then fix the source here and flash a new build.
