@@ -110,6 +110,8 @@ L * * L L L      R R R * * *
 
 `R3-6` is the exception. It stays `R`, so the rule still applies to it. That is what makes a right-hand roll after the right Shift type an apostrophe instead of a capital, which is what you want, because right-hand capitals come from the left Shift.
 
+One pair inside that exception is exempt again: `R3-6` followed by `R3-5`, because colon is Shift + `;` and both keys are on the right hand. `get_chordal_hold` hands this pair to Permissive Hold. Release `;` while `'` is still down and you get `:`. Lift `'` first, as a fast roll does, and you get `';`, so `x = 'abc';` still types.
+
 ### Per-key settings
 
 One table, `tap_holds`, feeds three callbacks. Anything not listed takes the defaults: term 150, hold-on-other-press off, retro tap on.
@@ -133,6 +135,8 @@ QMK's retro tap reaches only the keys QMK handles itself. So the default `on` ap
 **Why retro tap is off on the two Alt keys.** On Windows a bare Alt press moves focus to the menu bar. A character arriving straight after it could pick a menu item.
 
 **Why hold-on-other-press is on for `R3-6` only.** It makes a capital land the moment the letter goes down, whatever order you lift the two keys. It is safe there because Chordal Hold still catches right-hand rolls and the apostrophe is not a Flow Tap key. On any Space key the same setting would be a disaster: "a you" would become "a You", because Space is a left key and half the letters after it are right-hand ones.
+
+It is switched off while `;` (`R3-5`) is part of the hold. Otherwise the colon would land the moment `;` goes down, and a rolled `';` would become `:`. `pre_process_record_user` notes a `;` press in `semicolon_during_shift_quote` and clears it on the next `'` press. It has to stay set until then, not only until `;` comes up: when `'` lifts first, QMK asks for this setting once more while typing the apostrophe, and a yes there turns the apostrophe into Shift.
 
 **Why `L3-1` is a plain Shift.** For the same reason. Shift and Space cannot share a key and both win. Space therefore lives only on `RT1`, and `L3-1` has no tap at all, which makes Shift plus a letter a capital at any speed, either hand, any release order.
 
@@ -225,29 +229,30 @@ A compile proves the code builds. Only typing proves it works.
 15. Type `xa`, `za`, `./` and `/u` fast. Each must give the characters, never a modifier chord.
 16. Type a sentence at full speed with capitals from `L3-1` and from `R3-6`. Every capital must appear.
 17. Hold `R3-6` and type a right-hand letter. It must give an apostrophe and the letter, not a capital.
-18. Hold `L4-2` alone for half a second and release. On Windows the Start menu opens and no `z` is typed.
-19. Tap `L4-2` quickly. It types `z`.
-20. Hold `LT2` alone and release. It sends Escape.
-21. Hold `RT1` slowly and release. It sends Space.
+18. Hold `R3-6`, tap `R3-5`, then release `R3-6`. It must give `:`. Type `';` as a fast roll. It must give `';`.
+19. Hold `L4-2` alone for half a second and release. On Windows the Start menu opens and no `z` is typed.
+20. Tap `L4-2` quickly. It types `z`.
+21. Hold `LT2` alone and release. It sends Escape.
+22. Hold `RT1` slowly and release. It sends Space.
 
 **Colours**
 
-22. Base layer: blue everywhere except orange on `L3-1`, `R3-6`, `L4-1`, `R4-6`, `L4-3`, `R4-4`; pink on `L4-2`, `R4-5`, `LT2`, `RT1`; green on `LT1`, `RT2`; red on `L1-6`.
-23. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: lime top row, four symbol pairs in four colours, nothing blue, nothing lit on the right hand except F6–F12 and `R4-6`, everything marked `_` dark. `LT1` + `R2-1` types `y` and does not scroll. Releasing `LT1` on its own types an Enter; that is retro tap, and expected.
-24. Hold `RT2`. Same for the layer 2 grid: three white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance. Releasing `RT2` on its own types a Backspace, expected for the same reason.
-25. In Mac mode `LT2`, `RT1`, `L4-2` and `R4-5` are white on the base layer, `R4-6` is white on layer 1, and nothing else changes.
-26. Judge orange against lime, and lime against green, by eye. If two read alike, move a hue in `glow_palette` and keep every gap at 30 units or more.
+23. Base layer: blue everywhere except orange on `L3-1`, `R3-6`, `L4-1`, `R4-6`, `L4-3`, `R4-4`; pink on `L4-2`, `R4-5`, `LT2`, `RT1`; green on `LT1`, `RT2`; red on `L1-6`.
+24. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: lime top row, four symbol pairs in four colours, nothing blue, nothing lit on the right hand except F6–F12 and `R4-6`, everything marked `_` dark. `LT1` + `R2-1` types `y` and does not scroll. Releasing `LT1` on its own types an Enter; that is retro tap, and expected.
+25. Hold `RT2`. Same for the layer 2 grid: three white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance. Releasing `RT2` on its own types a Backspace, expected for the same reason.
+26. In Mac mode `LT2`, `RT1`, `L4-2` and `R4-5` are white on the base layer, `R4-6` is white on layer 1, and nothing else changes.
+27. Judge orange against lime, and lime against green, by eye. If two read alike, move a hue in `glow_palette` and keep every gap at 30 units or more.
 
 **Effects**
 
-27. Type a few words on base. Each pressed key drops to about three quarters, stays there, and snaps back to full within half a second.
-28. Watch `LT2`, `RT1`, `L4-2` and `R4-5` on base without typing. They breathe together, about one breath every three seconds: at full for most of it, a short sink to roughly 60 %, and back. No other key moves. Hold `LT1`: `R4-6` breathes the same way.
-29. Hold `RT2` and tap `L3-6`. Type again: no dip, and the mode keys hold steady. `RT2` + `L3-6` once more brings both back.
-30. Unplug and plug in again. Both effects are back without touching anything.
-31. In Mac mode, `LT2`, `RT1`, `L4-2` and `R4-5` are white, breathe, and dip when pressed like any other key.
-32. `RT2` + `L3-5` still blacks the board out, and again brings it back.
+28. Type a few words on base. Each pressed key drops to about three quarters, stays there, and snaps back to full within half a second.
+29. Watch `LT2`, `RT1`, `L4-2` and `R4-5` on base without typing. They breathe together, about one breath every three seconds: at full for most of it, a short sink to roughly 60 %, and back. No other key moves. Hold `LT1`: `R4-6` breathes the same way.
+30. Hold `RT2` and tap `L3-6`. Type again: no dip, and the mode keys hold steady. `RT2` + `L3-6` once more brings both back.
+31. Unplug and plug in again. Both effects are back without touching anything.
+32. In Mac mode, `LT2`, `RT1`, `L4-2` and `R4-5` are white, breathe, and dip when pressed like any other key.
+33. `RT2` + `L3-5` still blacks the board out, and again brings it back.
 
 **Brightness**
 
-33. Hold `RT2` and tap `L2-5` five times. The board climbs in four even stages to full, goes dark on the fifth, and the sixth tap starts the climb again.
-34. Unplug and plug in again. The stage you left is back.
+34. Hold `RT2` and tap `L2-5` five times. The board climbs in four even stages to full, goes dark on the fifth, and the sixth tap starts the climb again.
+35. Unplug and plug in again. The stage you left is back.

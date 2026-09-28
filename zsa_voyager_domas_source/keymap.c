@@ -147,7 +147,37 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     return tap_hold_for(keycode)->tapping_term;
 }
 
+// Colon is Shift + semicolon, and both keys are on the right hand, so Chordal
+// Hold would type any overlap of the two as ';. This pair is left to
+// Permissive Hold instead: ; released inside the hold gives a colon, ' lifted
+// first still types ';, as in x = 'abc';. Hold-on-other-press is dropped
+// while ; is part of the hold, or the colon would land on the ; press and
+// the roll would be lost. The flag stays set until the next ' press, because
+// QMK asks for hold-on-other-press again when it types the tap.
+static bool semicolon_during_shift_quote;
+
+bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (record->event.pressed) {
+        if (keycode == RSFT_T(KC_QUOTE)) {
+            semicolon_during_shift_quote = false;
+        } else if (keycode == KC_SCLN) {
+            semicolon_during_shift_quote = true;
+        }
+    }
+    return true;
+}
+
+bool get_chordal_hold(uint16_t tap_hold_keycode, keyrecord_t *tap_hold_record, uint16_t other_keycode, keyrecord_t *other_record) {
+    if (tap_hold_keycode == RSFT_T(KC_QUOTE) && other_keycode == KC_SCLN) {
+        return true;
+    }
+    return get_chordal_hold_default(tap_hold_record, other_record);
+}
+
 bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+    if (keycode == RSFT_T(KC_QUOTE) && semicolon_during_shift_quote) {
+        return false;
+    }
     return tap_hold_for(keycode)->hold_on_other_key_press;
 }
 

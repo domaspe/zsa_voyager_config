@@ -81,6 +81,10 @@ Each hand has its own set: an app command on the inner thumb, a Ctrl that never
 changes on the outer pinky, a Windows key on the pinky, and an Alt on the ring
 finger. That is what keeps every shortcut on one hand.
 
+Colon with the right hand: hold `'` (`R3-6`), tap `;` (`R3-5`), then let go of
+`'`. Lift `'` before `;` and you get `';`, which is what fast typing of
+`'abc';` needs. Left Shift (`L3-1`) + `;` gives a colon at any speed.
+
 ## Layer 1 — hold Enter (`LT1`)
 
 Symbols on the left, tab switching in the outer column, F keys on the top row,
