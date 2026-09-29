@@ -231,6 +231,10 @@ Hold Esc (`LT2`), the left inner thumb. Sends Ctrl on Windows, Cmd on a Mac.
 | quit            | Esc + Q  | `LT2` + `L2-2` | inner thumb + pinky       |
 | editor terminal | Esc + \` | `LT2` + `L1-1` | inner thumb + outer pinky |
 
+Z, X, `.` and `/` hold a modifier of their own, but with a thumb down any press
+length gives the letter: a slow Esc + X still cuts. Alone, a long press stays
+the modifier and types nothing.
+
 ## App shortcuts, right hand
 
 Hold Space (`RT1`), the right inner thumb. Same modifier, other hand.

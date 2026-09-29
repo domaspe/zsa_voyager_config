@@ -65,6 +65,8 @@ The rest:
 
 A hold on either thumb that no other key interrupted sends the tap on release, so a slow Escape or a slow Space still types. `process_record_user` does that itself, because QMK's retro tapping never reaches these keys: it runs at the end of `process_action`, and returning false from `process_record_user`, which these keys do, skips `process_action` altogether. Every other key event clears the "nothing else pressed" flag, so a thumb held for a shortcut sends no Escape afterwards.
 
+QMK keeps one bit per modifier, not a count. On a Mac, `LT2` and `L4-2` both hold left Cmd, and `RT1` and `R4-5` right Cmd. On Windows, `LT2` and `L4-1` both hold left Ctrl. Letting go of the second key clears the bit while the thumb is still down. `post_process_record_user` checks both thumbs after every key release and registers their modifier again if it went missing.
+
 `BACKSLASH_ENTER` replaces two identical Oryx macros, `ST_MACRO_0` and `ST_MACRO_1`, which sent the same thing.
 
 ## Alt+Tab on Windows
@@ -114,25 +116,25 @@ One pair inside that exception is exempt again: `R3-6` followed by `R3-5`, becau
 
 ### Per-key settings
 
-One table, `tap_holds`, feeds three callbacks. Anything not listed takes the defaults: term 150, hold-on-other-press off, retro tap on.
+One table, `tap_holds`, feeds three callbacks and `post_process_record_user`. Anything not listed takes the defaults: term 150, hold-on-other-press off, retro tap on.
 
 QMK's retro tap reaches only the keys QMK handles itself. So the default `on` applies to `LT1` and `RT2`: hold either alone and release, and it types Enter or Backspace. `LT2`, `RT1` and `L1-6` are handled by `process_record_user`, which returns false before QMK's retro tap can run. The two thumbs get the same behaviour by hand, see **Custom keycodes**; `L1-6` gets none, which is what its row asks for. Term and hold-on-other-press are decided before `process_record_user` runs, so those two columns apply to all three.
 
-| Position | Keycode             | Term | Hold on other press | Retro tap |
-| -------- | ------------------- | ---- | ------------------- | --------- |
-| `L4-2`   | `LGUI_T(KC_Z)`      | 200  | no                  | no        |
-| `R4-5`   | `RGUI_T(KC_SLASH)`  | 200  | no                  | no        |
-| `L4-3`   | `LALT_T(KC_X)`      | 200  | no                  | no        |
-| `R4-4`   | `RALT_T(KC_DOT)`    | 200  | no                  | no        |
-| `R4-6`   | `RCTL_T(KC_DELETE)` | 200  | no                  | yes       |
-| `L1-6`   | `NUM5_CLICK`        | 200  | no                  | no        |
-| `R3-6`   | `RSFT_T(KC_QUOTE)`  | 150  | yes                 | yes       |
+| Position | Keycode             | Term | Hold on other press | Retro tap        |
+| -------- | ------------------- | ---- | ------------------- | ---------------- |
+| `L4-2`   | `LGUI_T(KC_Z)`      | 200  | no                  | with Ctrl or Cmd |
+| `R4-5`   | `RGUI_T(KC_SLASH)`  | 200  | no                  | with Ctrl or Cmd |
+| `L4-3`   | `LALT_T(KC_X)`      | 200  | no                  | with Ctrl or Cmd |
+| `R4-4`   | `RALT_T(KC_DOT)`    | 200  | no                  | with Ctrl or Cmd |
+| `R4-6`   | `RCTL_T(KC_DELETE)` | 200  | no                  | yes              |
+| `L1-6`   | `NUM5_CLICK`        | 200  | no                  | no               |
+| `R3-6`   | `RSFT_T(KC_QUOTE)`  | 150  | yes                 | yes              |
 
 **Why 200 on the bottom row.** These tap characters you type all day. A longer boundary keeps a slow keystroke a character. Flow Tap covers you inside a burst, but after a pause the term is the only guard, and `./` or `/usr` typed after a pause would otherwise send Alt or the Windows key plus a letter. The longer term costs nothing, because Permissive Hold does not wait for it.
 
-**Why retro tap is off on `L4-2` and `R4-5`.** These are the Windows key, and the Start menu needs a bare press and release with nothing in between. Retro tap would add a stray `Z` or `/` on top of it.
+**Why retro tap on `L4-2`, `R4-5`, `L4-3` and `R4-4` needs Ctrl or Cmd held.** With a thumb held, a slow press still sends its shortcut: `LT2` + a long `L4-3` cuts, a long `L4-2` undoes. Alone, a long press stays a bare modifier. `L4-2` and `R4-5` are the Windows key, and the Start menu needs a bare press and release with nothing in between. `L4-3` and `R4-4` are Alt, and on Windows a bare Alt press moves focus to the menu bar, where a character arriving straight after could pick a menu item. On either system, a hold you gave up on would otherwise type its letter.
 
-**Why retro tap is off on the two Alt keys.** On Windows a bare Alt press moves focus to the menu bar. A character arriving straight after it could pick a menu item.
+QMK's retro tap cannot do this. It taps inside `process_action`, and on a Mac letting go of `L4-2` has already dropped the thumb's Cmd by then (see **Custom keycodes**), so `LT2` + a long `L4-2` would type a bare `z`. `post_process_record_user` runs after that, puts the thumb's modifier back, then taps. "No other key pressed" is read from `last_pressed_keycode`, set in `pre_process_record_user`, which sees keys in the order they went down.
 
 **Why hold-on-other-press is on for `R3-6` only.** It makes a capital land the moment the letter goes down, whatever order you lift the two keys. It is safe there because Chordal Hold still catches right-hand rolls and the apostrophe is not a Flow Tap key. On any Space key the same setting would be a disaster: "a you" would become "a You", because Space is a left key and half the letters after it are right-hand ones.
 
@@ -232,27 +234,30 @@ A compile proves the code builds. Only typing proves it works.
 18. Hold `R3-6`, tap `R3-5`, then release `R3-6`. It must give `:`. Type `';` as a fast roll. It must give `';`.
 19. Hold `L4-2` alone for half a second and release. On Windows the Start menu opens and no `z` is typed.
 20. Tap `L4-2` quickly. It types `z`.
-21. Hold `LT2` alone and release. It sends Escape.
-22. Hold `RT1` slowly and release. It sends Space.
+21. Hold `LT2`, hold `L4-3` for half a second, release it. The selection is cut. Same with `L4-2`: undo. Check on both systems.
+22. On the Mac, hold `LT2`, hold `L4-2` for half a second and release it, then tap `L4-4` with the thumb still down. It copies, not types `c`.
+23. Hold `L4-3` alone for half a second and release. No `x` is typed.
+24. Hold `LT2` alone and release. It sends Escape.
+25. Hold `RT1` slowly and release. It sends Space.
 
 **Colours**
 
-23. Base layer: blue everywhere except orange on `L3-1`, `R3-6`, `L4-1`, `R4-6`, `L4-3`, `R4-4`; pink on `L4-2`, `R4-5`, `LT2`, `RT1`; green on `LT1`, `RT2`; red on `L1-6`.
-24. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: lime top row, four symbol pairs in four colours, nothing blue, nothing lit on the right hand except F6–F12 and `R4-6`, everything marked `_` dark. `LT1` + `R2-1` types `y` and does not scroll. Releasing `LT1` on its own types an Enter; that is retro tap, and expected.
-25. Hold `RT2`. Same for the layer 2 grid: three white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance. Releasing `RT2` on its own types a Backspace, expected for the same reason.
-26. In Mac mode `LT2`, `RT1`, `L4-2` and `R4-5` are white on the base layer, `R4-6` is white on layer 1, and nothing else changes.
-27. Judge orange against lime, and lime against green, by eye. If two read alike, move a hue in `glow_palette` and keep every gap at 30 units or more.
+26. Base layer: blue everywhere except orange on `L3-1`, `R3-6`, `L4-1`, `R4-6`, `L4-3`, `R4-4`; pink on `L4-2`, `R4-5`, `LT2`, `RT1`; green on `LT1`, `RT2`; red on `L1-6`.
+27. Hold `LT1`. The board matches the layer 1 grid in `LAYOUT.md` **Colours**: lime top row, four symbol pairs in four colours, nothing blue, nothing lit on the right hand except F6–F12 and `R4-6`, everything marked `_` dark. `LT1` + `R2-1` types `y` and does not scroll. Releasing `LT1` on its own types an Enter; that is retro tap, and expected.
+28. Hold `RT2`. Same for the layer 2 grid: three white keys on the left hand, and PgDn (`R3-5`) tellable from Right (`R3-4`) at a glance. Releasing `RT2` on its own types a Backspace, expected for the same reason.
+29. In Mac mode `LT2`, `RT1`, `L4-2` and `R4-5` are white on the base layer, `R4-6` is white on layer 1, and nothing else changes.
+30. Judge orange against lime, and lime against green, by eye. If two read alike, move a hue in `glow_palette` and keep every gap at 30 units or more.
 
 **Effects**
 
-28. Type a few words on base. Each pressed key drops to about three quarters, stays there, and snaps back to full within half a second.
-29. Watch `LT2`, `RT1`, `L4-2` and `R4-5` on base without typing. They breathe together, about one breath every three seconds: at full for most of it, a short sink to roughly 60 %, and back. No other key moves. Hold `LT1`: `R4-6` breathes the same way.
-30. Hold `RT2` and tap `L3-6`. Type again: no dip, and the mode keys hold steady. `RT2` + `L3-6` once more brings both back.
-31. Unplug and plug in again. Both effects are back without touching anything.
-32. In Mac mode, `LT2`, `RT1`, `L4-2` and `R4-5` are white, breathe, and dip when pressed like any other key.
-33. `RT2` + `L3-5` still blacks the board out, and again brings it back.
+31. Type a few words on base. Each pressed key drops to about three quarters, stays there, and snaps back to full within half a second.
+32. Watch `LT2`, `RT1`, `L4-2` and `R4-5` on base without typing. They breathe together, about one breath every three seconds: at full for most of it, a short sink to roughly 60 %, and back. No other key moves. Hold `LT1`: `R4-6` breathes the same way.
+33. Hold `RT2` and tap `L3-6`. Type again: no dip, and the mode keys hold steady. `RT2` + `L3-6` once more brings both back.
+34. Unplug and plug in again. Both effects are back without touching anything.
+35. In Mac mode, `LT2`, `RT1`, `L4-2` and `R4-5` are white, breathe, and dip when pressed like any other key.
+36. `RT2` + `L3-5` still blacks the board out, and again brings it back.
 
 **Brightness**
 
-34. Hold `RT2` and tap `L2-5` five times. The board climbs in four even stages to full, goes dark on the fifth, and the sixth tap starts the climb again.
-35. Unplug and plug in again. The stage you left is back.
+37. Hold `RT2` and tap `L2-5` five times. The board climbs in four even stages to full, goes dark on the fifth, and the sixth tap starts the climb again.
+38. Unplug and plug in again. The stage you left is back.

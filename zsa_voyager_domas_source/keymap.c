@@ -115,24 +115,31 @@ bool process_detected_host_os_user(os_variant_t os) {
     return true;
 }
 
+// Whether a hold released with no other key pressed also types its tap.
+enum retro_tap {
+    RETRO_OFF,
+    RETRO_ON,
+    RETRO_IN_SHORTCUT, // only while Ctrl or Cmd is held, so a slow Esc + X still cuts
+};
+
 typedef struct {
-    uint16_t keycode;
-    uint16_t tapping_term;
-    bool     hold_on_other_key_press;
-    bool     retro_tapping;
+    uint16_t       keycode;
+    uint16_t       tapping_term;
+    bool           hold_on_other_key_press;
+    enum retro_tap retro_tap;
 } tap_hold_t;
 
 static const tap_hold_t tap_holds[] = {
-    { LGUI_T(KC_Z),      200, false, false },
-    { RGUI_T(KC_SLASH),  200, false, false },
-    { LALT_T(KC_X),      200, false, false },
-    { RALT_T(KC_DOT),    200, false, false },
-    { RCTL_T(KC_DELETE), 200, false, true  },
-    { NUM5_CLICK,        200, false, false },
-    { RSFT_T(KC_QUOTE),  150, true,  true  },
+    { LGUI_T(KC_Z),      200, false, RETRO_IN_SHORTCUT },
+    { RGUI_T(KC_SLASH),  200, false, RETRO_IN_SHORTCUT },
+    { LALT_T(KC_X),      200, false, RETRO_IN_SHORTCUT },
+    { RALT_T(KC_DOT),    200, false, RETRO_IN_SHORTCUT },
+    { RCTL_T(KC_DELETE), 200, false, RETRO_ON          },
+    { NUM5_CLICK,        200, false, RETRO_OFF         },
+    { RSFT_T(KC_QUOTE),  150, true,  RETRO_ON          },
 };
 
-static const tap_hold_t tap_hold_default = { 0, TAPPING_TERM, false, true };
+static const tap_hold_t tap_hold_default = { 0, TAPPING_TERM, false, RETRO_ON };
 
 static const tap_hold_t *tap_hold_for(uint16_t keycode) {
     for (uint8_t i = 0; i < ARRAY_SIZE(tap_holds); i++) {
@@ -156,8 +163,12 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
 // QMK asks for hold-on-other-press again when it types the tap.
 static bool semicolon_during_shift_quote;
 
+// Seen in the order the keys went down, before tap-hold reorders anything.
+static uint16_t last_pressed_keycode;
+
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
+        last_pressed_keycode = keycode;
         if (keycode == RSFT_T(KC_QUOTE)) {
             semicolon_during_shift_quote = false;
         } else if (keycode == KC_SCLN) {
@@ -182,7 +193,7 @@ bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool get_retro_tapping(uint16_t keycode, keyrecord_t *record) {
-    return tap_hold_for(keycode)->retro_tapping;
+    return tap_hold_for(keycode)->retro_tap == RETRO_ON;
 }
 
 bool is_flow_tap_key(uint16_t keycode) {
@@ -270,6 +281,28 @@ static bool process_app_command(app_command_t *command, keyrecord_t *record) {
         }
     }
     return false;
+}
+
+// QMK keeps one bit per modifier, not a count. On a Mac the thumb and L4-2
+// both hold left Cmd, so letting go of L4-2 drops the Cmd the thumb still
+// holds. The same happens to Ctrl on Windows between LT2 and L4-1.
+static void restore_app_command(app_command_t *command) {
+    if (command->held && !(get_mods() & MOD_BIT(command->held))) {
+        register_code(command->held);
+    }
+}
+
+// RETRO_IN_SHORTCUT is done here, not by QMK's retro tap: QMK taps before
+// this runs, so on a Mac it would type Esc + long Z as a bare z.
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (record->event.pressed) {
+        return;
+    }
+    restore_app_command(&left_app_command);
+    restore_app_command(&right_app_command);
+    if (record->tap.count == 0 && keycode == last_pressed_keycode && tap_hold_for(keycode)->retro_tap == RETRO_IN_SHORTCUT && (get_mods() & (MOD_MASK_CTRL | MOD_MASK_GUI))) {
+        tap_code(get_tap_keycode(keycode));
+    }
 }
 
 // One key cycles brightness through quarters of the board's maximum:
